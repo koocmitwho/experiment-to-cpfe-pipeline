@@ -16,10 +16,21 @@ from experiment_to_cpfe.pipeline import (
     run_stage_input_bundle,
 )
 
+DATA_COMMANDS = {
+    "normalize-sample": "Normalize declared data and units without solver-readiness requirements.",
+    "import-experiment-file": "Preserve declared file context, original metadata and source hashes.",
+    "check-evaluation-protocol": "Check declared identities, groups and saved metric evidence.",
+    "check-intake-status": "Record reviewed handoff states without starting downstream work.",
+}
+
 
 def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="pipeline")
     commands = parser.add_subparsers(dest="command", required=True)
+    for name, description in DATA_COMMANDS.items():
+        command = commands.add_parser(name, help=description, description=description)
+        command.add_argument("--config", required=True, type=Path)
+        command.add_argument("--run-dir", required=True, type=Path)
     for name in ("adapt", "build-training-dataset", "train-surrogate", "validate", "build-inp", "stage-input-bundle", "extract-odb"):
         command = commands.add_parser(name)
         command.add_argument("--config", required=True, type=Path)
@@ -43,7 +54,19 @@ def main(argv: list[str] | None = None) -> int:
     except SystemExit as exc:
         return int(exc.code)
     try:
-        if args.command == "build-training-dataset":
+        if args.command == "normalize-sample":
+            from experiment_to_cpfe.datasets.normalization import run_normalization
+            result = run_normalization(args.config, args.run_dir)
+        elif args.command == "import-experiment-file":
+            from experiment_to_cpfe.adapters.experiment_file import run_experiment_file
+            result = run_experiment_file(args.config, args.run_dir)
+        elif args.command == "check-evaluation-protocol":
+            from experiment_to_cpfe.evaluation_protocol import run_evaluation_protocol
+            result = run_evaluation_protocol(args.config, args.run_dir)
+        elif args.command == "check-intake-status":
+            from experiment_to_cpfe.intake_status import run_intake_status
+            result = run_intake_status(args.config, args.run_dir)
+        elif args.command == "build-training-dataset":
             from experiment_to_cpfe.datasets.training import run_dataset_build
             result = run_dataset_build(args.config, args.run_dir)
         elif args.command == "train-surrogate":
@@ -70,7 +93,17 @@ def main(argv: list[str] | None = None) -> int:
     except (PipelineError, OSError, ValueError, RuntimeError) as exc:
         print(str(exc), file=sys.stderr)
         return 1
-    return 0 if result.get("status") == "completed" else 1
+    if args.command == "check-evaluation-protocol":
+        # The audit reports facts and limits; scientific claim status is not an exit code.
+        completed = True
+    elif args.command == "check-intake-status":
+        completed = result.get("processing_status") == "completed"
+    else:
+        completed = result.get("status") == "completed"
+    if args.command in DATA_COMMANDS:
+        print(json.dumps(result, ensure_ascii=False, indent=2),
+              file=sys.stdout if completed else sys.stderr)
+    return 0 if completed else 1
 
 
 if __name__ == "__main__":

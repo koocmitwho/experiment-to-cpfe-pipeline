@@ -42,6 +42,18 @@ def test_same_group_in_multiple_splits_is_rejected_before_outputs(tmp_path):
     assert not out.exists()
 
 
+def test_scalar_trainer_rejects_missing_test_split_before_writing_a_partial_model(tmp_path):
+    from experiment_to_cpfe.learning.surrogate import train_mlp
+    x, y, groups, splits = dataset()
+    keep = splits != 'test'
+    out = tmp_path / 'unsupported-splits'
+    with pytest.raises(ValueError, match='scalar trainer requires train, validation and test'):
+        train_mlp(x[keep], y[keep], groups[keep], splits[keep], output_dir=out,
+                  feature_names=['strain', 'modulus'], feature_units=['1', 'Pa'],
+                  target_name='stress', target_unit='Pa', epochs=1)
+    assert not out.exists()
+
+
 def test_training_requires_explicit_features_and_finite_targets(tmp_path):
     from experiment_to_cpfe.learning.surrogate import train_mlp
     x,y,groups,splits=dataset();y[0]=np.nan

@@ -1,7 +1,10 @@
 def test_package_imports_with_version():
     import experiment_to_cpfe
+    from pathlib import Path
+    import tomllib
 
-    assert experiment_to_cpfe.__version__ == "0.1.0"
+    metadata = tomllib.loads(Path('pyproject.toml').read_text(encoding='utf-8'))
+    assert experiment_to_cpfe.__version__ == metadata['project']['version']
 
 
 def test_synthetic_fixture_path_is_repo_relative(synthetic_example_dir):

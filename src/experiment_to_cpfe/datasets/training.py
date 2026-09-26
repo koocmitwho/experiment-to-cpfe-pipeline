@@ -1,4 +1,4 @@
-"""Build an identity-aligned scalar regression collection from canonical HDF5."""
+"""Build an identity-aligned named regression collection from canonical HDF5."""
 
 from dataclasses import dataclass
 from datetime import datetime, timezone
@@ -14,7 +14,7 @@ from experiment_to_cpfe.assets.registry import array_payload_sha256
 from experiment_to_cpfe.datasets.training_columns import select_column
 from experiment_to_cpfe.datasets.training_config import TrainingDatasetConfig
 from experiment_to_cpfe.datasets.training_sources import TargetSourceIndex, register_target_sources
-from experiment_to_cpfe.learning.data_contract import TRAINING_ARRAYS, TRAINING_FORMAT, validate_group_splits
+from experiment_to_cpfe.learning.data_contract import TRAINING_ARRAYS, TRAINING_FORMAT, VECTOR_TRAINING_FORMAT, validate_group_splits
 from experiment_to_cpfe.provenance.hashing import sha256_file
 
 
@@ -34,11 +34,13 @@ def build_training_dataset(config, *, base_dir: Path) -> TrainingDataset:
     if isinstance(config, TrainingDatasetConfig):
         config = config.model_dump(mode="json")
     config = TrainingDatasetConfig.model_validate(config)
+    from experiment_to_cpfe.datasets.prediction import selector_identity
+    from experiment_to_cpfe.datasets.task_contract import assess_task, check_input_assets
     base_dir = Path(base_dir).resolve()
     chunks, sources = [], []
     seen_paths, seen_hashes = set(), set()
     target_sources = TargetSourceIndex()
-    quantities = [*config.features, config.target]
+    quantities = [*config.features, *config.target_quantities]
     for item in config.inputs:
         source = (base_dir / item.path).resolve()
         context = f"sample {item.sample_id!r} ({source})"
@@ -55,6 +57,9 @@ def build_training_dataset(config, *, base_dir: Path) -> TrainingDataset:
             if "dataset_split" in sample.solver_inputs and sample.solver_inputs["dataset_split"] != item.split:
                 raise ValueError("dataset_split conflicts with requested split")
             layout = config.layouts[item.layout]
+            target_selectors = [selector_identity(layout.columns[q.name]) for q in config.target_quantities]
+            if any(selector_identity(layout.columns[q.name]) in target_selectors for q in config.features):
+                raise ValueError('target contamination: a feature selects the same source column as a target')
             columns = {}
             for quantity in quantities:
                 try:
@@ -66,7 +71,9 @@ def build_training_dataset(config, *, base_dir: Path) -> TrainingDataset:
             stop = len(anchor) if rows.stop is None else rows.stop
             if stop > len(anchor) or rows.start >= stop:
                 raise ValueError("row selection is empty or outside aligned rows")
-            indices = list(range(rows.start, stop, rows.step))
+            indices = rows.indices if rows.indices is not None else list(range(rows.start, stop, rows.step))
+            if indices[-1] >= len(anchor):
+                raise ValueError('row indices are outside aligned rows')
             row_ids = [anchor[index] for index in indices]
             vectors, column_records = [], {}
             for name, column in columns.items():
@@ -80,10 +87,16 @@ def build_training_dataset(config, *, base_dir: Path) -> TrainingDataset:
                     "source_rows": [column.source_rows[index] for index in order],
                     "asset_ids": [column.asset_ids[index] for index in order],
                 }
-            partitions = register_target_sources(
-                sample, column_records[config.target.name], layout.columns[config.target.name],
-                item.target_specimen, item.split, group, target_sources)
-            chunks.append((np.column_stack(vectors[:-1]), vectors[-1], [group] * len(indices),
+            partitions = []
+            for quantity in config.target_quantities:
+                partitions.extend(register_target_sources(
+                    sample, column_records[quantity.name], layout.columns[quantity.name],
+                    item.target_specimen, item.split, group, target_sources))
+            for quantity in config.features:
+                check_input_assets(sample, column_records[quantity.name]['asset_ids'])
+            width = len(config.features)
+            targets = vectors[-1] if config.version == 1 else np.column_stack(vectors[width:])
+            chunks.append((np.column_stack(vectors[:width]), targets, [group] * len(indices),
                            [item.split] * len(indices), [item.sample_id] * len(indices), row_ids))
             sources.append({"path": str(source), "hdf5_sha256": digest, "layout": item.layout,
                             "sample_metadata": sample.metadata.model_dump(mode="json"),
@@ -95,13 +108,17 @@ def build_training_dataset(config, *, base_dir: Path) -> TrainingDataset:
             raise ValueError(f"{context}: {exc}") from exc
     arrays = [np.concatenate([chunk[index] for chunk in chunks]) for index in range(6)]
     group_splits = validate_group_splits(arrays[2], arrays[3])
-    metadata = {"format": TRAINING_FORMAT, "config": config.model_dump(mode="json"),
+    target_metadata = {"target": config.target.model_dump()} if config.version == 1 else {
+        "targets": [quantity.model_dump() for quantity in config.targets]}
+    metadata = {"format": TRAINING_FORMAT if config.version == 1 else VECTOR_TRAINING_FORMAT,
+                "config": config.model_dump(mode="json", exclude_none=True),
                 "features": [quantity.model_dump() for quantity in config.features],
-                "target": config.target.model_dump(), "sources": sources, "group_splits": group_splits,
+                **target_metadata, "sources": sources, "group_splits": group_splits,
                 "processing": ["explicit scalar column selection", "exact row identity alignment",
                                "declared affine conversion", "common row selection", "ordered concatenation"],
                 "lossy_transformations": ["unselected rows, fields and arrays omitted", "numeric values represented as float64",
                                            "HDF5 storage layout and compression omitted"]}
+    metadata['task_assessment'] = assess_task(config.task_contract, config.features, config.target_quantities, sources)
     return TrainingDataset(*arrays, metadata)
 
 
@@ -110,7 +127,11 @@ def _json(value) -> str:
 
 
 def run_dataset_build(config_path: Path, output_dir: Path) -> dict:
-    """Write a new dataset directory and an immediately usable training config."""
+    """Write a new dataset directory and its declared training-input configuration.
+
+    The installed trainer must separately support the declared target format and
+    split population; dataset construction does not establish model support.
+    """
     import yaml
 
     config_path, output = Path(config_path).resolve(), Path(output_dir).resolve()
@@ -125,7 +146,7 @@ def run_dataset_build(config_path: Path, output_dir: Path) -> dict:
     payload = {name: getattr(dataset, name) for name in TRAINING_ARRAYS}
     dataset.metadata["payload_hashes"] = {name: array_payload_sha256(array) for name, array in payload.items()}
     metadata_text = _json(dataset.metadata)
-    payload.update({"__format_version__": np.asarray(TRAINING_FORMAT),
+    payload.update({"__format_version__": np.asarray(dataset.metadata["format"]),
                     "__metadata_json__": np.asarray(metadata_text),
                     "__metadata_sha256__": np.asarray(hashlib.sha256(metadata_text.encode("utf-8")).hexdigest())})
     buffer = io.BytesIO()
@@ -133,11 +154,15 @@ def run_dataset_build(config_path: Path, output_dir: Path) -> dict:
     npz_bytes = buffer.getvalue()
     training = {"dataset": "dataset.npz", "dataset_sha256": hashlib.sha256(npz_bytes).hexdigest(),
                 "feature_names": [quantity["name"] for quantity in dataset.metadata["features"]],
-                "feature_units": [quantity["unit"] for quantity in dataset.metadata["features"]],
-                "target_name": dataset.metadata["target"]["name"], "target_unit": dataset.metadata["target"]["unit"]}
+                "feature_units": [quantity["unit"] for quantity in dataset.metadata["features"]]}
+    if "target" in dataset.metadata:
+        training.update(target_name=dataset.metadata["target"]["name"], target_unit=dataset.metadata["target"]["unit"])
+    else:
+        training.update(target_names=[quantity["name"] for quantity in dataset.metadata["targets"]],
+                        target_units=[quantity["unit"] for quantity in dataset.metadata["targets"]])
     files = {"dataset.npz": npz_bytes, "dataset.json": metadata_text.encode("utf-8"),
              "training-config.json": _json(training).encode("utf-8")}
-    manifest = {"status": "completed", "stage": "build-training-dataset", "format": TRAINING_FORMAT,
+    manifest = {"status": "completed", "stage": "build-training-dataset", "format": dataset.metadata["format"],
                 "created_at": datetime.now(timezone.utc).isoformat(), "config_path": str(config_path),
                 "config_sha256": hashlib.sha256(config_bytes).hexdigest(), "rows": len(dataset.targets),
                 "artifacts": {name: {"sha256": hashlib.sha256(content).hexdigest(), "size_bytes": len(content)}

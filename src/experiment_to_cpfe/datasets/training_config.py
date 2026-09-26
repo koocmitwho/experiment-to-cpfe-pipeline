@@ -1,4 +1,4 @@
-"""Explicit selection and grouping contracts for scalar regression datasets."""
+"""Explicit selection and grouping contracts for named regression datasets."""
 
 from typing import Annotated, Literal
 
@@ -77,9 +77,19 @@ Selector = Annotated[TableColumn | ArrayColumn, Field(discriminator="kind")]
 
 
 class RowSelection(Contract):
+    indices: list[Index] | None = Field(default=None, min_length=1)
     start: Index = 0
     stop: Index | None = None
     step: Annotated[StrictInt, Field(gt=0)] = 1
+
+    @model_validator(mode='after')
+    def explicit_indices(self):
+        if self.indices is not None:
+            if self.start != 0 or self.stop is not None or self.step != 1:
+                raise ValueError('indices cannot be combined with slice selection')
+            if self.indices != sorted(set(self.indices)):
+                raise ValueError('indices must be unique and increasing')
+        return self
 
 
 class Layout(Contract):
@@ -105,23 +115,32 @@ class TrainingInput(Contract):
 
 
 class TrainingDatasetConfig(Contract):
-    version: Literal[1]
+    version: Literal[1, 2]
     features: list[Quantity] = Field(min_length=1)
-    target: Quantity
+    target: Quantity | None = None
+    targets: list[Quantity] | None = Field(default=None, min_length=1)
     group_by: Literal["sample_id", "experiment_id", "explicit"]
     grouping_evidence: Declared
     layouts: dict[Declared, Layout]
     inputs: list[TrainingInput] = Field(min_length=1)
+    task_contract: dict | None = None
 
     @model_validator(mode="after")
     def collection_contract(self):
-        names = [quantity.name for quantity in self.features] + [self.target.name]
+        if self.version == 1:
+            if self.target is None or self.targets is not None:
+                raise ValueError("version 1 requires scalar target and forbids targets")
+        elif self.target is not None or self.targets is None:
+            raise ValueError("version 2 requires ordered targets and forbids scalar target")
+        names = [quantity.name for quantity in [*self.features, *self.target_quantities]]
+        from experiment_to_cpfe.datasets.task_contract import validate_task
+        self.task_contract = validate_task(self.task_contract, self.features, self.target_quantities)
         if len(names) != len(set(names)):
             raise ValueError("feature and target names must be unique")
         for key, layout in self.layouts.items():
             if set(layout.columns) != set(names):
                 raise ValueError(f"layout {key!r} columns must match features and target exactly")
-            for quantity in [*self.features, self.target]:
+            for quantity in [*self.features, *self.target_quantities]:
                 column = layout.columns[quantity.name]
                 if column.source_unit != quantity.unit and column.conversion is None:
                     raise ValueError(f"layout {key!r} field {quantity.name!r}: unit change requires conversion")
@@ -135,3 +154,7 @@ class TrainingDatasetConfig(Contract):
             if (self.group_by == "explicit") != (item.group_id is not None):
                 raise ValueError(f"sample {item.sample_id!r}: group_id is required only for explicit grouping")
         return self
+
+    @property
+    def target_quantities(self) -> list[Quantity]:
+        return [self.target] if self.version == 1 else self.targets

@@ -1,1 +1,10 @@
 include CHANGELOG.md
+include README.en.md
+recursive-include configs *.json *.yaml *.inp
+recursive-include docs *.md *.json *.png
+prune docs/superpowers
+prune docs/research
+recursive-include examples *.py *.md *.json *.yaml *.csv *.txt *.inp
+recursive-include tests *.py *.csv *.json
+recursive-include scripts *.py
+include .github/workflows/tests.yml

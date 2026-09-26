@@ -41,6 +41,9 @@ def train_mlp(features, targets, groups, splits, *, output_dir, feature_names, f
     ):
         raise ValueError('training requires explicit feature names, units and target semantics')
     group_splits=validate_group_splits(groups,splits)
+    if set(splits) != {'train', 'validation', 'test'}:
+        raise ValueError('scalar trainer requires train, validation and test splits; '
+                         'train/validation-only bundles are supported for data construction')
     if (
         type(epochs) is not int or epochs < 1
         or type(patience) is not int or patience < 1
