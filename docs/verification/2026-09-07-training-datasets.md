@@ -74,3 +74,8 @@ H_08/H_16/H_18 分工通过只读检查。案例脚本、已有模型和求解�
 本地构建保留当前项目版本号 0.1.0，产物仅用于安装验证，未替换已发布的 Release 附件。
 
 使用配置和命令见[训练数据指南](../training-datasets.md)。
+
+
+## Account-link note — 2026-09-27
+
+The account links above use the historical repository owner name. The current repository is https://github.com/koocmitwho/experiment-to-cpfe-pipeline.

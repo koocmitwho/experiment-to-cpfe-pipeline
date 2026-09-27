@@ -22,6 +22,7 @@ from experiment_to_cpfe.provenance.binding import (
     binding_issues, capture_inputs, changed_inputs, verify_recorded_file,
 )
 from experiment_to_cpfe.provenance.manifest import build_run_manifest, write_manifest
+from experiment_to_cpfe.provenance.solver_fingerprint import capture_solver_fingerprint
 from experiment_to_cpfe.schema.io import dump_sample_json, load_sample_json
 from experiment_to_cpfe.schema.models import SamplePackage
 from experiment_to_cpfe.schema.validation import (
@@ -77,6 +78,17 @@ def _timed_stage(function):
         finally:
             _started_at.reset(token)
     return execute
+
+
+def _configured_solver_fingerprint(config, cwd):
+    try:
+        command = _effective_abaqus_command(config)
+    except ValueError as exc:
+        fingerprint = capture_solver_fingerprint((), cwd=cwd)
+        fingerprint["resolution_error"] = f"command_parse_error: {exc}"
+        return fingerprint
+    return capture_solver_fingerprint(command, cwd=cwd,
+                                      version_probe_args=config.abaqus.version_probe_args)
 
 
 def _create_new_run(run_dir: Path) -> None:
@@ -240,6 +252,7 @@ def run_validate(config_path: Path, run_dir: Path) -> dict[str, object]:
             str(qa_path),
         ],
         "limitations": list(readiness.missing),
+        "solver_fingerprint": _configured_solver_fingerprint(config, run_dir / "solver"),
     }
     return _record_stage(run_dir, config_path, record)
 
@@ -460,6 +473,7 @@ def run_abaqus_stage(
             input_bundle_root=bundle_root,
             input_bundle_manifest=bundle_manifest,
             input_bundle_destination=launch_root if bundle_root else None,
+            version_probe_args=config.abaqus.version_probe_args,
         )
     )
     if launch_root != stage_dir and launch_root.exists():
@@ -485,6 +499,7 @@ def run_abaqus_stage(
         "compile_link_status": result.compile_link_status,
         "compile_status": result.compile_status,
         "link_status": result.link_status,
+        "solver_fingerprint": result.solver_fingerprint,
         "artifacts": [str(preflight_path), *(str(path) for path in result.artifacts),
                       *(str(p) for p in (result.stdout_path, result.stderr_path) if p.is_file())],
         "limitations": [*result.limitations, *post_issues],
@@ -527,15 +542,19 @@ def run_extract_odb(config_path: Path, run_dir: Path) -> dict[str, object]:
         max_records=config.abaqus.extraction_max_records,
     )
     try:
-        command = wrap_batch_command(build_abaqus_extraction_command(request, _effective_abaqus_command(config)))
+        effective_command = _effective_abaqus_command(config)
+        command = wrap_batch_command(build_abaqus_extraction_command(request, effective_command))
     except ValueError as exc:
         return _blocked_stage(config_path, run_dir, "extract-odb", [str(exc)])
     stdout_path = run_dir / "solver/extraction.stdout.txt"
     stderr_path = run_dir / "solver/extraction.stderr.txt"
+    execution_dir = config.abaqus.ascii_temp_root or run_dir / "solver"
+    fingerprint = capture_solver_fingerprint(effective_command, cwd=execution_dir,
+                                             version_probe_args=config.abaqus.version_probe_args)
     try:
         completed = execute_process(
             command,
-            cwd=config.abaqus.ascii_temp_root or run_dir / "solver",
+            cwd=execution_dir,
             capture_output=True,
             text=True,
             timeout=config.abaqus.timeout_seconds,
@@ -546,6 +565,7 @@ def run_extract_odb(config_path: Path, run_dir: Path) -> dict[str, object]:
         stderr_path.write_text(_output_text(exc.stderr), encoding="utf-8")
         return _record_stage(run_dir, config_path, {
             "stage": "extract-odb", "status": "failed", "command": list(command),
+            "solver_fingerprint": fingerprint,
             "artifacts": [str(stdout_path), str(stderr_path)],
             "limitations": [f"Abaqus extraction timeout after {config.abaqus.timeout_seconds} seconds"],
         })
@@ -557,6 +577,7 @@ def run_extract_odb(config_path: Path, run_dir: Path) -> dict[str, object]:
                 "stage": "extract-odb",
                 "status": "blocked",
                 "command": list(command),
+                "solver_fingerprint": fingerprint,
                 "artifacts": [],
                 "limitations": [f"Abaqus extraction command unavailable: {exc}"],
             },
@@ -598,6 +619,7 @@ def run_extract_odb(config_path: Path, run_dir: Path) -> dict[str, object]:
         {
             "stage": "extract-odb",
             "status": status,
+            "solver_fingerprint": fingerprint,
             "command": list(command),
             "return_code": completed.returncode,
             "artifacts": artifacts,

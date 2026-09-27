@@ -10,6 +10,8 @@ Records carry units, coordinates, tensor order, orientation conventions, sample 
 
 **v0.2.1 repairs and verification:** merged ODB records are validated before export with row provenance and field units. The update adds CLI summaries, consistent policy propagation, a CI skip gate and CPU PyG export testing.
 
+**v0.2.2 solver tracking and cross-platform checks:** each solver stage records the command, file digest and explicitly configured version probe while preserving the initial runtime. The update also refines timeout tests, explains evaluation-report exit codes and supplies historical asset context. See the [release verification record](docs/verification/2026-09-27-v0.2.2-release.md) for tests and installation.
+
 ## Start with a small example
 
 Python 3.12 or newer is required. From the repository root:

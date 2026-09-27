@@ -178,3 +178,8 @@ GitHub Release 不属于本次操作。
 下一轮应先为一个物理单位与许可完整的公开 CPFE 输入增加其专用 profile，再做
 有独立实验目标的验证；不要把接口 smoke test 升格为材料科学验证。当前无需继续
 扩展这些未声明的能力即可交付已验证的初版代码。
+
+
+## Account-link note — 2026-09-27
+
+The account links above use the historical repository owner name. The current repository is https://github.com/koocmitwho/experiment-to-cpfe-pipeline.

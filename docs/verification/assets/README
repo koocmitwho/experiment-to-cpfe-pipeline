@@ -1,0 +1,15 @@
+Historical verification assets
+==============================
+
+The public-tensile-20260906 directory contains two figures and a JSON result
+summary accompanying the repository's dated public tensile case record:
+
+https://github.com/koocmitwho/experiment-to-cpfe-pipeline/blob/v0.2.1/docs/verification/2026-09-06-public-tensile-surrogate.md
+
+These assets remain in the source distribution as companion case materials.
+The dated narrative is maintained in the repository. Its model, specimen splits,
+execution date and subsequent notes supply the context for the figures and values.
+
+The designated tensile assets use CC-BY-4.0. See THIRD_PARTY_NOTICES.md at the
+distribution root for source authors, the source DOI, attribution and processing
+details. The JSON summary and figures retain their original bytes.

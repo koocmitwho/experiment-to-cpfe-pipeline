@@ -96,7 +96,9 @@ def main(argv: list[str] | None = None) -> int:
         print(str(exc), file=sys.stderr)
         return 1
     if args.command == "check-evaluation-protocol":
-        # Command completion is the protocol report's execution result.
+        # Exit status describes report generation, not scientific conclusions.
+        # Unmet thresholds and holdouts are findings in a completed report;
+        # malformed configuration or evidence takes the error path above.
         completed = True
     elif args.command == "check-intake-status":
         completed = result.get("processing_status") == "completed"
