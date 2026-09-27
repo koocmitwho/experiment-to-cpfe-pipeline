@@ -1,4 +1,8 @@
-# License review for v0.1.0
+# License review: v0.1.0 historical snapshot and current distribution
+
+The dependency table and source review below record the 2026-09-06 v0.1.0
+snapshot. Current v0.2.1 distribution metadata names `koocmitwho` and the project
+contributors in `NOTICE`; the repository URL matches `pyproject.toml`.
 
 Project code, documentation and synthetic fixtures use Apache-2.0, with
 the public tensile materials listed in
@@ -11,10 +15,9 @@ attribution and redistribution requirements.
 
 ## Source and dependency review
 
-The four commits preceding this release have the repository's configured
-author, `17636365690`. The reviewed source tree contains project implementations,
-tests, small synthetic inputs and source references. No separately licensed
-third-party source implementation was identified in the release candidate.
+The four commits preceding v0.1.0 use the repository's configured author.
+The reviewed source tree contains project implementations, tests, small
+synthetic inputs and source references.
 
 The installed direct dependency metadata was reviewed on 2026-09-06:
 

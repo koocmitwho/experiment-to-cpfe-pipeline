@@ -51,6 +51,12 @@ The field-location identity includes the step/frame, original field/component,
 instance, position and available node/element/integration-point/section-point
 labels. These fields jointly identify each record.
 
+Each source/step/load-case/increment ID identifies one frame. Within that frame,
+the complete field/location/component identity is unique. `frame_time` is
+step-relative for TIME frames; `frame_value` follows the frame domain, and table
+`time` uses its independently checked clock. Frame times are compared in frame
+index order, and all records in a frame carry the same time.
+
 `experiment_to_cpfe/_resources/field_contract.py` is the dependency-free shared
 contract for the standalone Abaqus extractor, host numeric parsing and record
 identity validation. Its version is recorded in extraction metadata. Native
@@ -60,8 +66,8 @@ empty and nonfinite numeric values are rejected.
 `SamplePackage` holds metadata, reserved normalized tables, named NumPy arrays,
 assets and explicit solver inputs. Reserved tables are `grains`,
 `grain_boundaries`, `mesh_nodes`, `mesh_elements`, `load_history`,
-`measured_observations` and `simulation_records`. The package does not infer that
-rows from different evidence classes correspond physically.
+`measured_observations` and `simulation_records`. Explicit selectors and row
+identities define correspondence between tables.
 
 `NativeDraft` is a separate ingestion result. It holds selected arrays and
 unresolved semantic conditions without filling the complete sample's metadata.
@@ -94,10 +100,9 @@ is a separate value under `/meta`. The reader rejects foreign or unsupported
 container identifiers.
 
 Table records are stored as JSON with numeric common columns additionally
-available as datasets. Arrays live under `/derived/arrays`; empty reserved
-groups do not mean a physical quantity was computed. Asset metadata and the
-source manifest retain provenance. The file does not embed every original
-vendor binary or Abaqus ODB.
+available as datasets. Arrays live under `/derived/arrays`. Populated datasets
+contain the selected payload; reserved groups provide the container structure.
+Asset metadata and the source manifest retain references to original files.
 
 Mapped table rows carry `source_asset_id` and `source_kind`. These reserved
 fields bind every row to its raw source and its declared column units. Each
@@ -108,6 +113,11 @@ rows requires a new conversion. The logical hash is not presented as a file
 hash. Column selection and original text-format loss are recorded while the raw
 file remains unchanged. Independent sources retain separate clocks and IDs.
 
+ODB extraction rows bind to the simulated `odb-extraction-bundle` child asset,
+which points to the original ODB. Its `units` map uses field names, and each
+row's `unit` agrees with its field declaration. The export stage validates the
+merged sample and registers its own JSON and Markdown validation reports.
+
 Native blocks also retain physical source rows, worksheet and specimen metadata.
 For explicit unit conversions, raw assets describe source units, curated assets
 describe target units, and the source view records `normalized_units` for its
@@ -115,21 +125,20 @@ mapped output rows. Native mesh connectivity retains original node IDs; graph
 edge indices instead address rows of `graph_node_ids`.
 
 Numeric, Boolean, fixed-width byte and Unicode arrays, including scalars and
-empty arrays, have explicit dtype/shape metadata. Unicode is stored in UTF-8 with
-its original NumPy dtype descriptor restored on read. Object, structured and
-datetime arrays require prior normalization and are rejected before output
-creation; embedded NUL or invalid UTF-8 Unicode content is not supported.
+empty arrays, have explicit dtype/shape metadata. Unicode uses valid UTF-8 strings
+and retains its original NumPy dtype descriptor on read. Normalize object,
+structured and datetime arrays into these supported types before writing.
 
-HDF5 is the normalized project container, not a universal interpretation of
-arbitrary vendor HDF5 files. Vendor files remain external native assets with
+HDF5 is the normalized project container. Vendor files enter as native assets with
 hashes and explicit layout descriptions. NPZ/PyG exports derive from a verified
 canonical HDF5 file and record their loss of HDF5 storage layout, compression and
 attributes outside the modeled sample contract.
 
 ## Training collection
 
-`build-training-dataset` assembles selected scalar columns from multiple canonical
-packages. The `experiment-to-cpfe-training-1` NPZ stores features, targets, groups,
+`build-training-dataset` assembles selected columns from multiple canonical
+packages, using v1 scalar targets or v2 ordered target lists.
+The `experiment-to-cpfe-training-1` NPZ stores features, targets, groups,
 splits, sample_ids and JSON-encoded row identities. Its metadata records ordered
 quantity names/units, each sample's assets and sources, column selections,
 conversions, source row indices and the collection configuration.

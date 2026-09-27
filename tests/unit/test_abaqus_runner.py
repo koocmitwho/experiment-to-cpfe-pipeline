@@ -181,7 +181,6 @@ def test_license_failure_is_blocked(tmp_path, monkeypatch):
     assert run_abaqus(request(tmp_path)).status == 'blocked'
 
 
-@pytest.mark.skipif(os.name != 'nt', reason='Windows subprocess family regression')
 def test_timeout_stops_owned_child_process(tmp_path):
     import subprocess
     import csv
@@ -194,12 +193,21 @@ def test_timeout_stops_owned_child_process(tmp_path):
     result=run_abaqus(req)
     elapsed=time.monotonic()-started
     pid=int(result.stdout_path.read_text().splitlines()[0])
-    probe=subprocess.run(['tasklist','/FI',f'PID eq {pid}','/FO','CSV','/NH'],capture_output=True,text=True)
-    alive=any(len(row)>1 and row[1]==str(pid) for row in csv.reader(probe.stdout.splitlines()))
+    if os.name == 'nt':
+        probe=subprocess.run(['tasklist','/FI',f'PID eq {pid}','/FO','CSV','/NH'],capture_output=True,text=True)
+        alive=any(len(row)>1 and row[1]==str(pid) for row in csv.reader(probe.stdout.splitlines()))
+    else:
+        probe=subprocess.run(['ps','-o','stat=','-p',str(pid)],capture_output=True,text=True)
+        # A killed child may remain a zombie until the host reaps it.
+        alive=bool(probe.stdout.strip()) and not probe.stdout.strip().startswith('Z')
     try:
         assert result.status=='failed'
         assert not alive, 'timeout left the owned child process running'
         assert elapsed < 4, 'timeout waited for the un-terminated child to exit naturally'
     finally:
         if alive:
-            subprocess.run(['taskkill','/PID',str(pid),'/T','/F'],capture_output=True,check=False)
+            if os.name == 'nt':
+                subprocess.run(['taskkill','/PID',str(pid),'/T','/F'],capture_output=True,check=False)
+            else:
+                import signal
+                os.kill(pid, signal.SIGKILL)

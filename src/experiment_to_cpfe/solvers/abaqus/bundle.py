@@ -232,7 +232,7 @@ def stage_input_bundle(entrypoint: Path, *, source_root: Path, submission_dir: P
             "relative_path": relative.as_posix(),
         }
         assets.append({**common, "asset_id": raw_id, "parent_asset_id": None, "uri": str(path), "layer": "raw"})
-        # Copying a native file does not promote it to curated/derived data.
+        # Preserve the source layer when staging a native file.
         assets.append({**common, "asset_id": "staged-" + identity, "parent_asset_id": raw_id, "uri": str(staged), "layer": "raw"})
     manifest = target / manifest_relative
     with manifest.open("x", encoding="utf-8") as stream:
@@ -241,7 +241,7 @@ def stage_input_bundle(entrypoint: Path, *, source_root: Path, submission_dir: P
             "entrypoint": entry.relative_to(root).as_posix(),
             "submission_dir": submission.relative_to(root).as_posix(),
             "assets": assets, "include_edges": edges,
-            "limitations": ["Staging does not establish solver readiness", "Auxiliary-file dependencies are not parsed"],
+            "limitations": ["Solver readiness is checked by the consuming stage", "Auxiliary files are supplied explicitly"],
         }, stream, indent=2, sort_keys=True)
         stream.write("\n")
     return StagedInputBundle(target / entry.relative_to(root), target / submission.relative_to(root), manifest)

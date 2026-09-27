@@ -1,5 +1,7 @@
 # Native adapters implementation plan
 
+> Historical design/plan. Retained as a development archive; current operation is described in the v0.2.0 guides. Editorial update: 2026-09-27.
+
 **Goal:** Import the approved representative native layouts with explicit semantics,
 source receipts, offline regression and existing container compatibility.
 
@@ -11,8 +13,7 @@ existing HDF5 and NPZ exports, pytest.
 
 **Spec:** `docs/superpowers/specs/2026-09-06-native-adapters-design.md`.
 
-The user authorized inline execution of the established scope. Approval and
-commit ceremonies from generic workflow templates do not apply to this task.
+The historical implementation used inline execution of the approved scope.
 
 ## Global constraints
 

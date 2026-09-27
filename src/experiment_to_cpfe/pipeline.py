@@ -188,10 +188,10 @@ def _native_snapshot(config):
         max_files=bundle.max_files, max_total_bytes=bundle.max_total_bytes)
 
 
-def _readiness(sample, config):
+def _readiness(sample, config, policy):
     if config.abaqus.input_bundle is not None:
-        return check_deck_readiness(sample, _native_snapshot(config).expanded_text())
-    return check_solver_readiness(sample, "abaqus_cpfe")
+        return check_deck_readiness(sample, _native_snapshot(config).expanded_text(), policy)
+    return check_solver_readiness(sample, "abaqus_cpfe", policy)
 
 
 @_timed_stage
@@ -211,7 +211,7 @@ def run_validate(config_path: Path, run_dir: Path) -> dict[str, object]:
         write_manifest(binding, lock_path)
         policy = load_validation_policy(_default_policy_path())
         report = validate_sample(sample, policy)
-        readiness = _readiness(sample, config)
+        readiness = _readiness(sample, config, policy)
     except (PipelineError, OSError, ValueError, TypeError) as exc:
         validation = run_dir / "reports/validation.json"
         qa = run_dir / "reports/qa_report.md"
@@ -320,7 +320,7 @@ def run_stage_input_bundle(config_path: Path, run_dir: Path) -> dict[str, object
     return _record_stage(run_dir, config_path, {
         "stage": "stage-input-bundle", "status": "completed",
         "artifacts": report["artifacts"], "input_sha256": report["input_sha256"],
-        "limitations": ["Native INCLUDE bundle staged byte-for-byte; no semantic solver readiness implied"],
+        "limitations": ["Native INCLUDE bundle staged byte-for-byte; readiness is checked by build-inp and run-abaqus"],
     })
 
 
@@ -337,8 +337,9 @@ def run_build_inp(config_path: Path, run_dir: Path) -> dict[str, object]:
         return blocked
     config = load_pipeline_config(config_path)
     sample = load_sample_json(run_dir / "input/normalized_sample.json")
+    policy = load_validation_policy(_default_policy_path())
     if config.abaqus.input_bundle is not None:
-        readiness = _readiness(sample, config)
+        readiness = _readiness(sample, config, policy)
         if not readiness.ready:
             return _blocked_stage(config_path, run_dir, "build-inp", list(readiness.missing))
         try:
@@ -348,7 +349,7 @@ def run_build_inp(config_path: Path, run_dir: Path) -> dict[str, object]:
         return _record_stage(run_dir, config_path, {
             "stage": "build-inp", "status": "completed",
             "artifacts": report["artifacts"],
-            "limitations": ["Native INCLUDE bundle staged byte-for-byte; static template rendering was not used"],
+            "limitations": ["Native INCLUDE bundle staged byte-for-byte from the expanded input deck"],
             "input_sha256": report["input_sha256"],
             "solver_input": report["entrypoint"],
         })
@@ -356,7 +357,7 @@ def run_build_inp(config_path: Path, run_dir: Path) -> dict[str, object]:
         return _blocked_stage(config_path, run_dir, "build-inp", ["MISSING_SOLVER_INPUT: Abaqus template_path"])
     output = run_dir / "input" / "model.inp"
     try:
-        result = build_solver_input(sample, config.abaqus.template_path, output)
+        result = build_solver_input(sample, config.abaqus.template_path, output, policy)
     except (OSError, ValueError) as exc:
         return _blocked_stage(config_path, run_dir, "build-inp", [str(exc)])
     static_report = static_check_inp(output)
@@ -400,8 +401,9 @@ def run_abaqus_stage(
         return blocked
     config = load_pipeline_config(config_path)
     sample = load_sample_json(run_dir / "input/normalized_sample.json")
-    validation = validate_sample(sample, load_validation_policy(_default_policy_path()))
-    readiness = _readiness(sample, config)
+    policy = load_validation_policy(_default_policy_path())
+    validation = validate_sample(sample, policy)
+    readiness = _readiness(sample, config, policy)
     preflight_path = run_dir / "reports" / f"abaqus_{stage}_preflight.json"
     if preflight_path.exists():
         raise FileExistsError(preflight_path)
@@ -633,6 +635,10 @@ def run_export(
     if validation.get("passed") is not True:
         return _blocked_stage(config_path, run_dir, f"export-{format_name}",
                               ["data validation did not pass; formal export is blocked"])
+    config = load_pipeline_config(config_path)
+    if format_name not in config.export.formats:
+        return _blocked_stage(config_path, run_dir, f"export-{format_name}",
+                              [f"requested format {format_name!r} requires inclusion in export.formats"])
     if extraction_expected:
         manifest = json.loads((run_dir / "reports/run_manifest.json").read_text(encoding="utf-8"))
         issues = []
@@ -653,7 +659,6 @@ def run_export(
             "stage": f"export-{format_name}", "status": "completed", "artifacts": [str(output)],
             "source_hdf5_sha256": digest, "limitations": [],
         })
-    config = load_pipeline_config(config_path)
     sample = load_sample_json(run_dir / "input/normalized_sample.json")
     complete, _ = extraction_bundle_is_complete(extracted_dir)
     if extraction_expected and not complete:
@@ -664,7 +669,10 @@ def run_export(
             return _blocked_stage(config_path, run_dir, "export-hdf5", [
                 "simulation_records already contains another source; use separate samples or explicit source registration before merging"
             ])
-        extracted = load_extraction_bundle(extracted_dir)
+        try:
+            extracted = load_extraction_bundle(extracted_dir)
+        except (ValueError, OSError) as exc:
+            return _blocked_stage(config_path, run_dir, "export-hdf5", [f"extraction data contract: {exc}"])
         sample = SamplePackage(
             metadata=sample.metadata.model_copy(
                 update={
@@ -682,7 +690,17 @@ def run_export(
                 "extraction": extracted.solver_inputs["extraction"],
             },
         )
-    artifacts: list[str] = []
+    report = validate_sample(sample, load_validation_policy(_default_policy_path()))
+    validation_path = run_dir / "reports/export-hdf5_validation.json"
+    qa_path = run_dir / "reports/export-hdf5_qa.md"
+    write_validation_report(report, validation_path, qa_path)
+    artifacts: list[str] = [str(validation_path), str(qa_path)]
+    if not report.passed:
+        return _record_stage(run_dir, config_path, {
+            "stage": "export-hdf5", "status": "blocked", "artifacts": artifacts,
+            "validation": report.to_dict(),
+            "limitations": [f"{issue.code}: {issue.message}" for issue in report.errors],
+        })
     if format_name == "hdf5":
         output = run_dir / "dataset" / "sample.h5"
         digest = write_hdf5(
@@ -701,6 +719,7 @@ def run_export(
             "status": "completed",
             "artifacts": artifacts,
             "source_hdf5_sha256": digest,
+            "validation": report.to_dict(),
             "limitations": [],
         },
     )

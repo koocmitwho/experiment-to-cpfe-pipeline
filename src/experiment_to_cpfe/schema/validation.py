@@ -172,6 +172,21 @@ def validate_sample(
                 issues.append(_issue("CONTRADICTORY_EVIDENCE", "simulated evidence cannot enter measured_observations", location))
             if source.descriptive_metadata.get("table_name") != table_name:
                 issues.append(_issue("INVALID_ROW_SOURCE", "row table differs from its source table declaration", location))
+            if source.format == "odb-extraction-bundle":
+                for column in ("step", "frame", "increment_id", "field", "component", "value"):
+                    if column not in row:
+                        issues.append(_issue("MISSING_COLUMN", f"field record requires {column!r}", location))
+                value = row.get("value")
+                if not isinstance(value, Real) or isinstance(value, bool):
+                    issues.append(_issue("INVALID_FIELD_VALUE", "field value must be real numeric data", location + ".value"))
+                field_name = row.get("field")
+                unit = source.units.get(field_name) if isinstance(field_name, str) else None
+                if not _unit_is_declared(unit):
+                    issues.append(_issue("MISSING_UNIT", f"source unit for field {field_name!r} is unresolved",
+                                         location, policy.missing_units_severity))
+                elif row.get("unit") != unit:
+                    issues.append(_issue("CONTRADICTORY_EVIDENCE", "field unit differs from its source asset", location))
+                continue
             columns = source.descriptive_metadata.get("column_map")
             if not isinstance(columns, dict) or not columns:
                 issues.append(_issue("INVALID_ROW_SOURCE", "bound tabular source requires an explicit column mapping", location))
@@ -253,6 +268,7 @@ def validate_sample(
             locations = [(row.get("source_asset_id"), record_identity(row)) for row in field_rows]
             if len(locations) != len(set(locations)):
                 issues.append(_issue("DUPLICATE_FIELD_RECORD", "duplicate field location/component", "tables.simulation_records"))
+            issues.extend(_validate_field_frames(rows))
             rows = [row for row in rows if "field" not in row]
         increments = [(row.get("source_asset_id"), row.get("step"), row.get("load_case"), row.get("increment_id")) for row in rows if "increment_id" in row]
         if len(increments) != len(set(increments)):
@@ -266,9 +282,69 @@ def validate_sample(
     return ValidationReport(tuple(issues))
 
 
+def _validate_field_frames(rows: list[dict[str, object]]) -> list[ValidationIssue]:
+    """Check frame clocks and increment-to-frame identity for field records.
+
+    ``frame_time`` is step-relative and meaningful only in the TIME domain.
+    ``frame_value`` retains the frame's domain (e.g. frequency or mode), and
+    ordinary ``time`` is checked independently by ``validate_sample``. Legacy
+    0.1 loading supplies the TIME domain explicitly. Clocks are grouped by
+    source/step/load path and ordered by frame index, independently of CSV row
+    order. All locations/components of one frame share its time. Within a
+    source/step/load path, increments and frames correspond one-to-one; full field,
+    location and component identity determines row uniqueness in that frame.
+    """
+    issues: list[ValidationIssue] = []
+    increments: dict[tuple[object, ...], object] = {}
+    frame_increments: dict[tuple[object, ...], object] = {}
+    clocks: dict[tuple[object, ...], dict[int, tuple[float, str]]] = {}
+    for index, row in enumerate(rows):
+        if "field" not in row or ("frame" not in row and "frame_time" not in row):
+            continue
+        location = f"tables.simulation_records[{index}]"
+        frame = row.get("frame")
+        if not isinstance(frame, Real) or isinstance(frame, bool) or not math.isfinite(frame) or frame < 0 or int(frame) != frame:
+            issues.append(_issue("INVALID_TIME", "frame index must be a nonnegative integer", location + ".frame"))
+            continue
+        scope = tuple(row.get(key) for key in ("source_asset_id", "asset_id", "step", "load_case", "load_path_id"))
+        if "increment_id" in row:
+            increment = (*scope, row["increment_id"])
+            if increment in increments and increments[increment] != frame:
+                issues.append(_issue("DUPLICATE_INCREMENT", "increment ID identifies multiple frames", location + ".increment_id"))
+            increments[increment] = frame
+            frame_key = (*scope, frame)
+            if frame_key in frame_increments and frame_increments[frame_key] != row["increment_id"]:
+                issues.append(_issue("INCONSISTENT_INCREMENT", "frame records have different increment IDs", location + ".increment_id"))
+            frame_increments[frame_key] = row["increment_id"]
+        if "frame_time" not in row and "domain" not in row:
+            continue
+        time = row.get("frame_time")
+        if row.get("domain") != "TIME":
+            if time not in (None, ""):
+                issues.append(_issue("INVALID_TIME", "frame_time requires the TIME domain", location + ".frame_time"))
+            continue
+        if not isinstance(time, Real) or isinstance(time, bool) or not math.isfinite(time):
+            issues.append(_issue("INVALID_TIME", "TIME frame_time must be finite numeric data", location + ".frame_time"))
+            continue
+        times = clocks.setdefault(scope, {})
+        if frame in times and times[frame][0] != time:
+            issues.append(_issue("INCONSISTENT_FRAME_TIME", "field records in one frame have different times", location + ".frame_time"))
+        else:
+            times[int(frame)] = (float(time), location + ".frame_time")
+    for times in clocks.values():
+        previous = None
+        for frame in sorted(times):
+            time, location = times[frame]
+            if previous is not None and time < previous:
+                issues.append(_issue("NONMONOTONIC_TIME", "frame_time decreases within a step/load path", location))
+            previous = time
+    return issues
+
+
 def check_solver_readiness(
     sample: SamplePackage,
     solver_name: str,
+    policy: ValidationPolicy | None = None,
 ) -> SolverReadinessReport:
     if solver_name != "abaqus_cpfe":
         return SolverReadinessReport(
@@ -283,14 +359,16 @@ def check_solver_readiness(
         deck_text = "*HEADING\n" + "\n".join(replacements.get(key, "") for key in order)
     else:
         deck_text = ""
-    return check_deck_readiness(sample, deck_text)
+    return check_deck_readiness(sample, deck_text, policy)
 
 
-def check_deck_readiness(sample: SamplePackage, deck_text: str) -> SolverReadinessReport:
+def check_deck_readiness(
+    sample: SamplePackage, deck_text: str, policy: ValidationPolicy | None = None,
+) -> SolverReadinessReport:
     """Check normalized declarations against an expanded, actual input deck.
 
     Native bundle callers resolve and hash includes before supplying the text.
-    Staging a native bundle never implies this semantic gate has passed.
+    The caller's policy governs data issues in this readiness report.
     """
     from experiment_to_cpfe.schema.solver_contract import solver_contract_errors
 
@@ -335,12 +413,13 @@ def check_deck_readiness(sample: SamplePackage, deck_text: str) -> SolverReadine
         missing.append("loading definition")
     if not inputs.get("output_variables"):
         missing.append("output-variable contract")
-    missing.extend(issue.message for issue in validate_sample(sample, ValidationPolicy()).errors)
+    validation = validate_sample(sample, policy if policy is not None else ValidationPolicy())
+    missing.extend(issue.message for issue in validation.errors)
     missing.extend(solver_contract_errors(sample, deck_text))
     missing_tuple = tuple(f"MISSING_SOLVER_INPUT: {item}" for item in missing)
     return SolverReadinessReport(
         missing=missing_tuple,
-        warnings=(),
+        warnings=tuple(f"{issue.code}: {issue.message}" for issue in validation.warnings),
         ready=not missing_tuple,
     )
 

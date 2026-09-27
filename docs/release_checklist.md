@@ -5,17 +5,22 @@ files, build archives and reachable Git history. Record the version, commands
 and results in a dated verification report.
 
 For `v0.1.0`, see [the release record](verification/2026-09-06-v0.1.0-release.md).
+For `v0.2.0`, see [the data-foundation record](verification/2026-09-26-data-foundation.md)
+and [the validation/CI repair record](verification/2026-09-27-validation-ci-hardening.md).
+For `v0.2.1`, see [the release validation record](verification/2026-09-27-v0.2.1-release.md).
 
 ## Tests and packaging
 
-- [ ] `python -m pytest -q` passes in the offline environment. Record any skips.
+- [ ] `python -m pytest -q -rs --strict-markers` passes in the offline environment.
+  The skip gate accepts disabled Abaqus/wheel opt-ins and missing Torch imports
+  in `EXP2CPFE_TEST_PROFILE=offline`; every other skip fails the session.
   Enable the wheel-installation and real-Abaqus tests for their respective checks.
 - [ ] `python -m build` produces both sdist and wheel, and installing the wheel
   outside the source checkout finds the default policy and ODB extraction script.
 - [ ] The synthetic multimodal validate/build/HDF5/NPZ/inspect flow completes in
   a new run directory. HDF5 round-trip preserves the declared arrays and metadata.
-- [ ] Test PyG export with its optional dependencies and graph contract, or
-  record the missing dependencies and skipped check.
+- [ ] Install CPU Torch and `.[dev,ml]`; use `EXP2CPFE_TEST_PROFILE=ml` and execute
+  the real PyG serialization/readback test and full suite.
 - [ ] Data-validation failures and incomplete/changed extraction evidence block
   formal export. Valid solver-incomplete experimental samples remain exportable.
 - [ ] Check native INCLUDE dependencies through the CLI, including path
@@ -29,7 +34,11 @@ For `v0.1.0`, see [the release record](verification/2026-09-06-v0.1.0-release.md
 ## Files and sources
 
 - [ ] Review `git ls-files --cached --others --exclude-standard`, including
-  `docs/superpowers/` and new verification documents, before staging files.
+  `docs/superpowers/` and dated verification documents, as a source-tree review.
+- [ ] Review wheel/sdist members separately. `MANIFEST.in` keeps historical
+  plans and dated verification Markdown as repository archives; current guides,
+  example assets, tests and scripts form the source distribution. Verify these
+  exclusions and the attribution in `NOTICE` against the built archives.
 - [ ] Keep raw experiments, ODB/CAE files, checkpoints, private material cards,
   run manifests, credentials and machine configuration in local storage.
   Check that candidates and build archives exclude them and local installation paths.
@@ -56,7 +65,7 @@ For `v0.1.0`, see [the release record](verification/2026-09-06-v0.1.0-release.md
 - [ ] Include Apache-2.0 `LICENSE`, project `NOTICE`, third-party attribution and
   SPDX package metadata, using the scope recorded in [licensing.md](licensing.md).
 - [ ] Check package metadata with `python -m twine check --strict <dist-files>`.
-- [ ] Publish a new annotated version tag and GitHub Release after both CI jobs
+- [ ] Publish a new annotated version tag and GitHub Release after all CI jobs
   pass, attaching the verified wheel and sdist and version-specific install links.
 - [ ] Download the published attachments and verify their contents and installation.
 

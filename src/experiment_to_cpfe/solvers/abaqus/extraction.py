@@ -5,6 +5,7 @@ from dataclasses import dataclass
 import json
 import hashlib
 import io
+import re
 from pathlib import Path
 
 from experiment_to_cpfe.assets.models import (
@@ -60,6 +61,13 @@ def extraction_bundle_is_complete(path: Path) -> tuple[bool, tuple[str, ...]]:
 
 
 def load_extraction_bundle(path: Path) -> SamplePackage:
+    """Load field records with source binding and explicit field units.
+
+    Version 0.1 bundles predate the field-contract version and contain
+    step-relative ``frame_time``. Current bundles declare their contract;
+    ``frame_value`` retains its frame domain and TIME records carry
+    ``frame_time`` separately.
+    """
     path = Path(path)
     complete, missing = extraction_bundle_is_complete(path)
     if not complete:
@@ -67,17 +75,32 @@ def load_extraction_bundle(path: Path) -> SamplePackage:
     metadata_bytes = (path / "metadata.json").read_bytes()
     frames_bytes = (path / "frames.csv").read_bytes()
     metadata_payload = json.loads(metadata_bytes.decode("utf-8"))
-    if metadata_payload.get("field_contract_version") not in (None, FIELD_CONTRACT_VERSION):
+    if not isinstance(metadata_payload, dict):
+        raise ValueError("extraction metadata must be an object")
+    for name in ("odb_sha256", "odb_path", "sample_metadata"):
+        if name not in metadata_payload:
+            raise ValueError(f"missing extraction metadata field: {name}")
+    odb_hash = metadata_payload["odb_sha256"]
+    odb_path = metadata_payload["odb_path"]
+    if not isinstance(odb_hash, str) or not re.fullmatch(r"[0-9a-fA-F]{64}", odb_hash):
+        raise ValueError("odb_sha256 must be a SHA-256 hexadecimal digest")
+    if not isinstance(odb_path, str) or not odb_path.strip():
+        raise ValueError("odb_path must be a nonempty path string")
+    if not isinstance(metadata_payload["sample_metadata"], dict):
+        raise ValueError("sample_metadata must be an object")
+    legacy = metadata_payload.get("extraction_version") == "0.1"
+    contract = metadata_payload.get("field_contract_version")
+    if contract != FIELD_CONTRACT_VERSION and not (legacy and contract is None):
         raise ValueError("unsupported field contract version")
     with io.StringIO(frames_bytes.decode("utf-8"), newline="") as stream:
         records = [parse_record(row) for row in csv.DictReader(stream)]
-    odb_hash = metadata_payload["odb_sha256"]
-    odb_path = metadata_payload["odb_path"]
     declared_units = metadata_payload.get("field_units", {})
     if not isinstance(declared_units, dict):
         raise ValueError("field units must be an explicit name-to-unit mapping")
     used_units = {}
     for row in records:
+        if legacy:
+            row.setdefault("domain", "TIME")
         name = row.get("field")
         unit = declared_units.get(name)
         if not _unit_is_declared(unit):
@@ -133,7 +156,13 @@ def load_extraction_bundle(path: Path) -> SamplePackage:
         conversion=ConversionRecord(original_format="odb", target_format="odb-extraction-bundle",
                                     source_sha256=odb_hash, target_file_hashes=file_hashes,
                                     source_hash_verified=source_verified),
+        descriptive_metadata={"table_name": "simulation_records",
+                              "value_units_by": "field",
+                              "field_contract_version": contract or "legacy-0.1"},
     )
+    for row in records:
+        row["source_asset_id"] = asset.asset_id
+        row["source_kind"] = SourceKind.SIMULATED.value
     return SamplePackage(
         metadata=metadata,
         tables={"simulation_records": records},

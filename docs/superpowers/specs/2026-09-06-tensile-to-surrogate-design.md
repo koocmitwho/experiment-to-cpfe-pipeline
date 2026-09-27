@@ -1,5 +1,7 @@
 # Public tensile experiment to FE and neural surrogate
 
+> Historical design/plan. Retained as a development archive; current operation is described in the v0.2.0 guides. Editorial update: 2026-09-27.
+
 The complete case uses the KupferDigital CuSn8Ni2 tensile series. H_08 supplies
 calibration data, H_16 supplies an experimental model check, and H_18 is the final
 experimental holdout. The fixed public dataset is DOI 10.5281/zenodo.10820299.

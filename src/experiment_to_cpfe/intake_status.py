@@ -1,8 +1,4 @@
-"""Human-reviewed handoff checkpoints with bounded, explicit evidence bindings.
-
-The module reads metadata only. It neither interprets receipt-internal paths nor
-certifies scientific validity or dispatches any downstream work.
-"""
+"""Reviewed handoff checkpoints with explicit metadata and evidence bindings."""
 from __future__ import annotations
 
 import hashlib
@@ -13,12 +9,12 @@ import stat
 
 
 CHECKPOINTS = {
-    'raw_to_semantics': '原始文件→显式语义核对',
-    'semantics_to_sample_package': '语义核对→SamplePackage',
-    'sample_package_to_solver': 'SamplePackage→求解准备',
-    'solver_to_numerical_validation': '求解准备→数值验证',
-    'simulation_training_to_experimental_evaluation': '仿真/训练→独立实验评价',
-    'experimental_evaluation_to_applicability': '实验评价→适用范围',
+    'raw_to_semantics': 'Raw files to explicit semantics',
+    'semantics_to_sample_package': 'Semantics to SamplePackage',
+    'sample_package_to_solver': 'SamplePackage to solver preparation',
+    'solver_to_numerical_validation': 'Solver preparation to numerical validation',
+    'simulation_training_to_experimental_evaluation': 'Simulation/training to experimental evaluation',
+    'experimental_evaluation_to_applicability': 'Experimental evaluation to applicability',
 }
 STATUSES = ('ready', 'conditional', 'awaiting_information', 'not_applicable')
 _SCOPES = ('synthetic_mechanism_only', 'simulation_only', 'experimental')
@@ -159,37 +155,37 @@ def validate_intake_status_config(config_path: str | Path) -> dict:
     """Validate a JSON config and its explicit evidence without producing output.
 
     The returned copy resolves evidence paths and includes their measured sizes.
-    Errors are ValueError; this call does not assess scientific validity.
+    Configuration and evidence errors are reported as ValueError.
     """
     config, _ = _prepare(config_path)
     return config
 
 
 def _report_text(report):
-    lines = ['# 实验交付状态报告', '', f'交付：{report["handoff_id"]}', '',
-             f'用途：{report["purpose"]}', '', f'证据性质（人工声明）：{report["evidence_scope"]}', '',
-             '报告生成完成仅表示选中接点已记录；未选接点未评审，下游阶段未启动。', '',
-             '摘要匹配只验证证据字节完整性；科学有效性未评估（scientific_validity: not_assessed）。', '',
-             '状态数量：' + ', '.join(f'{name}={count}' for name, count in report['status_counts'].items()), '']
+    lines = ['# Experimental handoff status', '', f'Handoff: {report["handoff_id"]}', '',
+             f'Purpose: {report["purpose"]}', '', f'Declared evidence scope: {report["evidence_scope"]}', '',
+             'Selected checkpoints retain their reviewer, basis, conditions and evidence receipts.', '',
+             'File digests record the byte integrity of submitted evidence.', '',
+             'Status counts: ' + ', '.join(f'{name}={count}' for name, count in report['status_counts'].items()), '']
     for item in report['checkpoints']:
-        lines.extend([f'## {item["label"]}', '', f'状态：{item["status"]}', '',
-                      f'判断人：{item["reviewer"]}', '', f'依据：{item["basis"]}', '',
-                      f'证据完整性：{item["evidence_integrity"]}', ''])
+        lines.extend([f'## {item["label"]}', '', f'Status: {item["status"]}', '',
+                      f'Reviewer: {item["reviewer"]}', '', f'Basis: {item["basis"]}', '',
+                      f'Evidence integrity: {item["evidence_integrity"]}', ''])
         if item.get('not_applicable_reason'):
-            lines.extend([f'不适用理由：{item["not_applicable_reason"]}', ''])
-        for field, title in (('conditions', '条件'), ('blockers', '缺项／阻塞')):
+            lines.extend([f'Applicability basis: {item["not_applicable_reason"]}', ''])
+        for field, title in (('conditions', 'Condition'), ('blockers', 'Open requirement')):
             for text in item[field]:
                 lines.extend([f'- {title}：{text}', ''])
         for evidence in item['evidence']:
-            lines.extend([f'- 证据：`{evidence["path"]}`；{evidence["size_bytes"]} bytes；'
+            lines.extend([f'- Evidence: `{evidence["path"]}`; {evidence["size_bytes"]} bytes; '
                           f'SHA256 `{evidence["sha256"]}`', ''])
-    lines.extend([f'源配置：`{report["source_config"]["path"]}`', '',
-                  f'源配置 SHA256：`{report["source_config"]["sha256"]}`', ''])
+    lines.extend([f'Source configuration: `{report["source_config"]["path"]}`', '',
+                  f'Source configuration SHA256: `{report["source_config"]["sha256"]}`', ''])
     return '\n'.join(lines)
 
 
 def run_intake_status(config_path: str | Path, run_dir: str | Path) -> dict:
-    """Create a new handoff report; completion never implies all stages are ready."""
+    """Create a handoff report preserving each selected checkpoint's status."""
     output = Path(run_dir).absolute()
     if output.exists() or output.is_symlink():
         raise ValueError(f'intake output directory already exists: {output}')

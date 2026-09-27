@@ -13,6 +13,8 @@ def bound_run(tmp_path, multimodal_sample_config, monkeypatch):
     monkeypatch.delenv("EXP2CPFE_ABAQUS_COMMAND", raising=False)
     payload = yaml.safe_load(multimodal_sample_config.read_text())
     payload["abaqus"]["command"] = [sys.executable, str(Path('tests/fixtures/fake_solver.py').resolve())]
+    # Exercise graph-contract failures with PyG export explicitly allowed.
+    payload["export"]["formats"] = ["hdf5", "npz", "pyg"]
     multimodal_sample_config.write_text(yaml.safe_dump(payload))
     run = tmp_path / "run"
     assert pipeline.run_validate(multimodal_sample_config, run)["status"] == "completed"

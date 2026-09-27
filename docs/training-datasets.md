@@ -1,8 +1,10 @@
-# 从规范化样本构建训练集
+# Build training collections from canonical samples
 
-`build-training-dataset` 按配置合并多个项目 HDF5 文件，输出供标量回归 MLP 使用的 NPZ。特征和目标可以来自表列，也可以来自数组分量。构建器按行身份对齐数值，检查单位与分组，并保存选取过程和来源。
-
-在当前源码安装基础依赖即可构建数据。训练需要 `training` extra：
+`build-training-dataset` combines configured project HDF5 inputs into numerical
+features and targets, aligning records by identity and preserving units, groups
+and source selections. v1 declares a scalar target; v2 declares an ordered list
+of targets. Dataset construction uses the base installation. The scalar CPU MLP
+uses the `training` extra and v1 train/validation/test bundles:
 
 ```text
 python -m pip install -e ".[training]"
@@ -10,11 +12,15 @@ pipeline build-training-dataset --config build.yaml --run-dir runs/dataset-001
 pipeline train-surrogate --config runs/dataset-001/training-config.json --run-dir runs/model-001
 ```
 
-每次使用新输出目录。输入路径相对配置文件所在目录解析，也支持绝对路径。生成的 `training-config.json` 可直接运行，或添加 `epochs`、`patience`、`seed`、`hidden` 和 `learning_rate`。训练器继续使用训练集拟合归一化参数，用 validation MSE 选择 checkpoint，最后报告各划分的误差和均值基线。
+Use a fresh directory for each command. Input paths resolve relative to the build
+configuration. Training settings include `epochs`, `patience`, `seed`, `hidden`
+and `learning_rate`. The trainer fits normalization on training rows, selects a
+checkpoint by validation MSE and reports split errors and a mean baseline.
 
-## 配置一组表数据
+## Table selectors
 
-下面的配置读取三个规范化样本。表中每行有 `increment`、`extension`、`stiffness` 和 `force`，且绑定了 `source_asset_id` 与 `source_kind`。来源资产声明这三个数值字段的单位分别为 mm、N/mm 和 kN。
+This example reads three canonical samples. Their source assets declare
+extension in mm, stiffness in N/mm and force in kN:
 
 ```yaml
 version: 1
@@ -23,10 +29,10 @@ features:
   - {name: stiffness, unit: N/mm}
 target: {name: force, unit: N}
 group_by: sample_id
-grouping_evidence: 每个样本对应一个独立参数案例
+grouping_evidence: Each sample identifies an independent parameter case
 layouts:
   curve:
-    alignment_evidence: 同一增量的输入和响应使用相同 increment
+    alignment_evidence: Inputs and responses use the same increment identity
     columns:
       extension:
         kind: table
@@ -46,30 +52,33 @@ layouts:
         column: force
         id_columns: [increment]
         source_unit: kN
-        conversion: {factor: 1000, offset: 0, reason: kN 转 N}
+        conversion: {factor: 1000, offset: 0, reason: Convert kN to N}
 inputs:
   - {path: a.h5, sample_id: case-a, layout: curve, split: train}
   - {path: b.h5, sample_id: case-b, layout: curve, split: validation}
   - {path: c.h5, sample_id: case-c, layout: curve, split: test}
 ```
 
-`features` 的顺序就是模型输入顺序。每个 layout 的 `columns` 必须完整对应特征名和目标名。不同文件可以指定不同 layout，因此字段改名或数组布局变化可通过配置处理。
+Feature order determines input order. A layout supplies every feature and target
+column. Separate files may select different layouts. `where` filters row values,
+for example `where: {source_asset_id: sensor-A}`. `id_columns` can be composite,
+such as `[step, frame, node_label]`. Each column has the same unique identity set;
+alignment preserves the first feature's order and reorders other columns to it.
 
-表选择器的 `where` 按值筛选，例如 `where: {source_asset_id: sensor-A}`。`id_columns` 可以是复合身份，如 `[step, frame, node_label]`。每列的身份集合必须相同且唯一，输出保留第一特征的顺序。目标行顺序不同会按身份重排，缺行或多行会报错。
+Extracted ODB rows bind to their `odb-extraction-bundle` asset through
+`source_asset_id`. A selector may also supply an explicit matching `asset_id`.
+Use `where` to select field/component, with `value` units checked against both
+the field unit on the asset and the row's `unit`. `unit_key` selects an existing
+unit declaration for renamed columns; all available declarations must agree.
 
-已有 ODB 提取表在资产清单中记录来源。这类表在选择器中填写 `asset_id`，指向
-`odb-extraction-bundle` 资产，再用 `where` 选择 field/component。若行中已有来源绑定，
-显式 asset_id 必须与它一致。`value` 列的单位同时核对资产字段单位和行内 unit。
+Layout `rows: {start: 0, stop: 20, step: 2}` selects every second aligned row in
+the first twenty. Indices are zero-based, stop is exclusive and step is positive.
+The same selection applies to every feature and target and retains original row
+indices. Empty or out-of-bounds selections produce a diagnostic.
 
-表字段更名后，若资产单位表仍保留原键，可用 `unit_key` 显式关联。例如
-`column: response, unit_key: load` 表示 response 使用已登记的 load 单位。
-选中列已有的单位声明仍参与核对，别名不能覆盖冲突的单位。
+## Array selectors
 
-在 layout 下添加 `rows: {start: 0, stop: 20, step: 2}`，可以从对齐后的数据中取每隔一行的前 20 行。索引从 0 开始，stop 不包含在内。该选择同时作用于全部特征和目标，越界或空选区会报错。
-
-## 配置数组分量
-
-对于形状为 `[channel, row]` 的 `channels`，可以这样选择第二个通道：
+For a `[channel, row]` array, select the second channel with:
 
 ```yaml
 kind: array
@@ -82,25 +91,34 @@ unit_key: gain
 source_unit: V
 ```
 
-`asset_id` 指向的资产必须通过 `descriptive_metadata.array_key` 绑定此数组。`ids` 指定唯一整数或字符串向量，其长度等于记录轴长度。`component` 按剩余轴的自然顺序给出索引，每个轴恰好选一个分量。一维数组使用 `row_axis: 0` 和空 component，这也是默认值。
+The asset binds the array through `descriptive_metadata.array_key`. `ids` is a
+unique integer/string vector matching the record axis. `component` selects one
+index for each remaining axis in natural axis order. A one-dimensional array
+uses `row_axis: 0` and an empty component selection. Native component names,
+entity identities and entity axes participate in checks. Store upstream
+aggregation or registration results with their definitions in the canonical
+sample before selecting them.
 
-`unit_key` 从资产单位表中选取单位，默认使用数组名。原生导入已登记的分量名称、entity_ids 和 entity_axis 会参与核对。多维场的聚合或空间配准应先在上游完成，并将处理结果和依据写回规范化包。
+## Units, grouping and source partitions
 
-## 单位与分组
+`source_unit` agrees with the registered asset or converted `normalized_units`.
+Output units come from `features`, `target` or `targets`. A conversion computes
+`value * factor + offset` and records its rationale.
 
-每列的 `source_unit` 必须与资产中的单位一致。表适配器已换算过的字段使用 `normalized_units`，ODB 的 `value` 列还会核对记录的 `field` 和 `unit`。输出单位由 features/target 声明，单位变化需要显式 conversion。转换执行 `value * factor + offset`，reason 记录依据。构建器不推算换算系数。
+| `group_by` | Group identity |
+|---|---|
+| `sample_id` | SampleMetadata sample identity |
+| `experiment_id` | Shared experiment identity across samples |
+| `explicit` | Each input supplies `group_id` with grouping evidence |
 
-| group_by | 分组身份 |
-| --- | --- |
-| `sample_id` | SampleMetadata.sample_id，例如一个样本对应一个试样 |
-| `experiment_id` | SampleMetadata.experiment_id，同一实验的多个样本共用一组 |
-| `explicit` | 每个 input 提供 group_id，适用于跨文件试样身份或参数案例 |
+All rows of one group remain in one split. Train and validation are required for
+construction, and test is optional; each present split has at least two rows.
+The scalar trainer requires all three. The builder checks sample identity, file
+content, existing split declarations and native target group/split declarations.
 
-同一组的所有行属于一个划分，train、validation、test 各至少两行。多个样本可以共用一组。重复样本身份、重复 HDF5 内容、同组跨划分，以及对已有 `dataset_split` 或原生目标 group/split 的冲突都会报错。
-
-构建阶段还检查目标资产的根来源。默认按来源文件归组；同一目标根来源出现在不同划分时拒绝构建，共享特征和标定资产不触发此检查。内容摘要相同，或同一 URI 的任一记录缺少摘要时，都会检查来源复用。上游需要保留稳定的来源身份。
-
-一份原始表格包含多个独立试样时，可为 input 声明原表中的试样身份列：
+Target origins are checked across splits by file digest and URI. Shared feature
+or calibration sources retain their respective roles. A shared original table
+can declare its physical specimen column:
 
 ```yaml
 inputs:
@@ -110,36 +128,43 @@ inputs:
     split: train
     target_specimen:
       column: specimen_id
-      evidence: 原始工作表 A 列是实体试样编号，各行的测量属于该试样
+      evidence: Original worksheet column A identifies each physical specimen
 ```
 
-目标选择器必须是表列，且每个选中目标行的 `specimen_id` 必须等于所选 group。
-该列应出现在原生 CSV/TXT/XLSX block 的列映射中，并保留原始 `source_row`、
-`source_sheet` 和经过核验的表转换记录。普通数组或没有原生块来源的表继续使用
-整文件规则。`target_specimen` 不修改来源 URI、摘要或资产父子链。
+Every selected target row carries the declared specimen identity, original
+`source_row`, worksheet where applicable and a verified table-conversion receipt.
+The builder checks specimen and worksheet/row intersections. Whole-file and
+specimen-level source partitions remain consistent. `dataset.json` records
+`target_partitions`, including specimen, source rows, identity column and basis.
+The original source URI, digest and asset chain remain attached.
 
-构建器按原表试样身份及工作表/行检查交集。相同试样的不同测量行、不同试样标签
-指向的同一源行，以及整文件范围与局部试样范围混用，都不能跨划分。
-独立性依据仍由数据使用者提供；编号本身不证明试样来自独立材料批次。
-输出 `dataset.json` 的每个 source 包含 `target_partitions`，保存实际检查的
-试样、源行、身份列和依据。默认整文件来源的该列表为空。
+## v2 and task declarations
 
-## 查看构建与训练记录
+Set `version: 2` and replace `target` with an ordered `targets` list to build named
+multi-target arrays. Target-list order is retained in data and metadata. Optional
+task contracts describe prediction time, input availability, source roles,
+required context and grouping identity. See the [data-foundation guide](data-foundation.md)
+for a complete v2 example and assessment states.
 
-| 文件 | 内容 |
-| --- | --- |
-| `dataset.npz` | features、targets、groups、splits、sample_ids、row_ids，以及 JSON 元数据 |
-| `dataset.json` | 字段单位、完整配置、样本元数据、资产链、源清单、原始行索引、转换和分组 |
-| `training-config.json` | 数据路径、字段声明和数据内容绑定，可追加模型设置 |
-| `build-manifest.json` | 构建状态、配置与输入记录、各输出文件校验信息 |
+## Inspect artifacts
 
-读取数值使用 `np.load(path, allow_pickle=False)`。`row_ids` 中每项都是一个 JSON 列表，保留复合身份及整数/字符串区别。训练后的 `dataset-receipt.json` 保存所用数据与配置的对应记录，`training.json` 给出收据位置。
+| File | Contents |
+|---|---|
+| `dataset.npz` | Features, targets, groups, splits, sample IDs, row identities and JSON metadata |
+| `dataset.json` | Quantity order/units, configuration, sample metadata, asset chains, source rows, transformations and groups |
+| `training-config.json` | Dataset-relative path, quantity declarations and content receipts |
+| `build-manifest.json` | Build status and configuration/input/output receipts |
 
-训练 NPZ 的格式标记为 `experiment-to-cpfe-training-1`。它保留选中的数值和来源说明，未选字段留在原 HDF5。`pipeline export --format npz` 则保存单个完整 SamplePackage，二者用途不同。
+Read arrays with `np.load(path, allow_pickle=False)`. Row identities are JSON
+lists that preserve integer and string components. Training writes
+`dataset-receipt.json`, `training.json`, checkpoint and predictions.
 
-旧的四数组训练 NPZ 和训练配置仍可使用。完整 SamplePackage NPZ 中若已包含 features、targets、groups 和 splits，也保留原有训练入口。对新训练包，`train-surrogate` 还会核对字段顺序、单位及内容记录，格式标记和元数据必须完整。构建器接收项目规范化 HDF5，厂商 HDF5 先通过相应适配器解释和规范化。
+The training NPZ format is `experiment-to-cpfe-training-1`; the full sample NPZ
+from `pipeline export --format npz` preserves the whole SamplePackage. Legacy
+four-array training bundles retain their training entry. Canonical HDF5 provides
+the source contract; vendor HDF5 enters through its configured adapter.
 
-[合成示例](../examples/synthetic_training/README.md) 提供两套可直接生成的输入。公开 tensile 案例继续使用原有物理归约和插值步骤，已记录的应变窗口与评估分工保持不变。
-
-[GH4169 超声案例](../examples/gh4169_ultrasonic/README.md) 演示同一工作簿内十个
-试样的规范化、分组训练与小样本评估；原数据和模型按 CC BY-NC 3.0 在本地保存。
+The [synthetic example](../examples/synthetic_training/README.md) generates table
+and array layouts. The [GH4169 example](../examples/gh4169_ultrasonic/README.md)
+demonstrates specimen grouping from a shared workbook. The public tensile case
+retains its documented physical reduction, interpolation and evaluation splits.

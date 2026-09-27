@@ -20,8 +20,10 @@ export remains possible. Inspect both reports before choosing the next stage.
 
 The authoritative default policy is the installed package resource
 `experiment_to_cpfe/_resources/validation_policy.yaml`.
-`configs/validation_policy.yaml` is a human-readable template, not an automatic
-runtime override. Editing that template alone does not change validation.
+`configs/validation_policy.yaml` is a human-readable template. Data validation,
+readiness, INP generation and preflight all use the loaded package policy.
+Python API callers may pass an explicit `ValidationPolicy` to readiness and
+`build_solver_input`.
 
 ## 2. Build INP
 
@@ -31,8 +33,8 @@ pipeline build-inp --config sample.yaml --run-dir runs/sample-001
 
 Requires a solver-ready sample. The template path writes `input/model.inp` and a
 static-check report. Native input bundles use the explicit `abaqus.input_bundle`
-configuration described below. Content and readiness checks do not establish
-physical calibration or solver convergence. Existing output is not overwritten.
+configuration described below. Each build uses a fresh output. The readiness
+report records agreement between declared inputs and the rendered deck.
 
 ### Checked solver profiles
 
@@ -46,15 +48,20 @@ agree with the deck. The gate also checks rigid-body constraint rank.
 `solver_inputs.material_model` selects one of:
 
 - `isotropic_elastic`: `material_parameters: {E: ..., nu: ...}` must match the
-  plain `*ELASTIC` definition; PEEQ and SDV outputs are incompatible with this
-  profile.
+  plain `*ELASTIC` definition. Request the stress, strain, displacement and
+  reaction fields supplied by the model.
+- `isotropic_plastic`: supply `material_parameters: {E: ..., nu: ..., plastic:
+  [[stress0, 0.0], [stress1, plastic_strain1]]}`. At least two stress/plastic-strain
+  pairs must match one plain `*PLASTIC` block exactly. Stress is positive and
+  nondecreasing; plastic strain starts at zero and increases strictly.
+  Elastic constants also match one plain `*ELASTIC` block.
 - `umat`: explicitly supply `constants`, one `constant_units` entry per constant,
   and positive `depvar` under `material_parameters`. These must match
   `*USER MATERIAL` and `*DEPVAR`; separately configure an authorized
   `abaqus.user_subroutine`.
 
-`orientation_required: false` is appropriate only when the declared material
-does not require orientation assignment. For a UMAT that expects orientation in
+Use `orientation_required: false` with an orientation-independent material
+declaration. For a UMAT that expects orientation in
 STATEV, set `orientation_required: true` and explicitly map grain-table columns
 to one-based state-variable indices:
 
@@ -73,19 +80,18 @@ rows supply up to eight values each. The gate verifies complete, non-overlapping
 coverage and exact agreement of the selected STATEV values with mapped grain
 orientations. Euler, quaternion and rotation-matrix representations require
 their explicit source conventions; quaternion norm and proper matrix rotations
-are checked. The UMAT must actually interpret these entries according to those
-declared conventions; this check does not implement its constitutive equations.
+are checked. The supplied UMAT interprets these entries using the declared
+conventions and constitutive equations.
 
-Other orientation-assignment schemes, assembly-scoped models, periodic equations,
-unsupported keywords/options and additional loading procedures remain blocked
-by this initial profile. The synthetic example demonstrates the isotropic
-profile; toggling the orientation flag cannot supply missing CPFE physics.
+The synthetic example demonstrates the isotropic profile. Crystalline models
+provide their constitutive model, parameters, grain assignments and orientation
+initialization through the explicit UMAT contract.
 
-The Python API `check_deck_readiness(sample, deck_text)` checks declarations
+The Python API `check_deck_readiness(sample, deck_text, policy=None)` checks declarations
 against expanded actual deck text; the native-bundle path resolves and hashes
-INCLUDE files before calling it. `check_solver_readiness(sample, "abaqus_cpfe")`
-checks the configured template blocks. Neither function estimates material
-parameters or changes scientific conventions.
+INCLUDE files before calling it. `check_solver_readiness(sample, "abaqus_cpfe",
+policy=None)` checks the configured template blocks. Both return readiness,
+missing requirements and warnings under the selected validation policy.
 
 ### Native INCLUDE bundles
 
@@ -106,8 +112,8 @@ abaqus:
     license: user-supplied-authorized-input
 ```
 
-This is a configuration fragment, not a complete solver-ready sample. Replace
-the license description with the actual authorization/source terms. INCLUDE
+Add this fragment to a complete sample configuration and replace
+the license description with the actual source terms. INCLUDE
 references are resolved with the explicitly declared submission-directory
 semantics. Missing dependencies, cycles, paths escaping the source root,
 excessive file count/size and existing destinations are rejected.
@@ -119,9 +125,8 @@ pipeline stage-input-bundle --config sample.yaml --run-dir runs/sample-001
 This optional stage makes a byte-preserving, hash-recorded copy under
 `input/native_bundle/` with `reports/native_bundle.json`. For a non-ASCII run
 path, an explicitly configured ASCII temporary root holds the prepared bundle;
-the report records its actual location. The stage establishes file
-staging only. `build-inp` and `run-abaqus` must still pass their solver checks;
-staging cannot supply missing units or material metadata.
+the report records its actual location. `build-inp` and `run-abaqus` then check
+the declared units, materials, mesh, loading and expanded deck.
 
 ## 3. Abaqus datacheck
 
@@ -134,7 +139,7 @@ Use command tokens such as `command: [abaqus]`; machine-specific compiler setup
 belongs in a local wrapper referenced by configuration/environment, outside the
 public source tree. An unavailable executable or an invalid staging path is
 reported as blocked. Solver errors and missing evidence are reported with the
-captured logs. A zero process exit code alone is insufficient.
+captured logs. Completion requires both the process result and stage artifacts.
 
 Datacheck and analysis use separate stage directories. Default execution is one
 CPU with a configured timeout; the chosen staging directory must be ASCII-only.
@@ -144,7 +149,7 @@ Set `abaqus.ascii_temp_root` to a local ASCII-only directory when execution need
 to occur outside the run directory. Each stage creates a fresh temporary job
 directory beneath that root, runs there, then archives outputs into
 `solver/<stage>/` under the run. Native bundles preserve their relative
-submission directory inside that archive. Existing stage output is not reused.
+submission directory inside that archive. Each stage has its own output directory.
 Temporary inputs and native source originals remain separate, and the recorded
 command keeps the actual execution location for provenance.
 
@@ -177,22 +182,27 @@ abaqus:
   field_units: {S: MPa, E: '1', U: mm, RF: N}
 ```
 
-These units are an illustrative consistent declaration, not default units.
-Use only units supported by the actual model. This small-strain example requests
+Set these units to the actual model's conventions. This small-strain example requests
 `E`; a suitable finite-strain model may request logarithmic strain `LE`. If
 Abaqus replaces an unavailable request with a different field, the extractor
 reports the requested field as missing rather than silently aliasing E and LE.
 Available position selections are
 `integration_point`, `nodal`, `element_nodal`, `element_face`, `centroid`, and
 `native`; `native` retains stored locations without interpolating new values.
-For user-material state variables, declare units for the actual names such as
-`SDV1` and `SDV2`; a single `SDV` unit does not cover heterogeneous state variables.
+For user-material state variables, declare units individually for the actual
+names, such as `SDV1` and `SDV2`.
 Only request PEEQ/SDV when the model provides those outputs.
 
-Missing fields/locations are recorded per frame. Missing S, LE, PEEQ or SDV
-components are never substituted with zeros. Original field/component names,
+Missing fields/locations are recorded per frame. Original field/component names,
 available location labels and numerical precision are retained in the extracted
 records; field units are bound in the host metadata.
+
+`frame_value` retains the ODB frame domain; `frame_time` is step-relative for
+TIME frames. Ordinary table `time` has its own clock. Validation checks frame
+times in frame order for each source/step/load case. Each increment identifies
+one frame, with multiple field/component/location rows sharing that frame.
+Extracted rows bind to the simulated extraction asset. Current bundles declare
+`field_contract_version`; the legacy extraction-version 0.1 fixture is also read.
 
 ## 6. Export
 
@@ -209,21 +219,26 @@ non-pickled arrays plus JSON metadata and can be opened with
 
 PyG requires the optional `ml` dependencies, explicit graph node IDs/features,
 integer edge indices and a graph contract with names, units and directedness.
-The exported `Data` object embeds a portable package for records that are not
-graph features. It does not assign experimental observations or ODB fields to
-graph nodes or generate training targets. Load serialized PyTorch objects only
-from a trusted source.
+The exported `Data` object embeds a portable package for the accompanying
+sample tables and metadata. Supplied graph arrays define the node/feature
+correspondence. Load serialized PyTorch objects from a trusted source.
 
 Formal exports require the hash-bound `validation.json` to report `passed: true`.
 This is separate from solver readiness: valid experimental data may be exported
 without a mesh or material model, even when the combined validate stage reports
-incomplete solver inputs. Such an export does not make the sample solver-ready.
+incomplete solver inputs. The two reports record their respective checks.
+
+`export.formats` enables the requested format. HDF5 export validates the complete
+merged SamplePackage immediately before writing and saves
+`reports/export-hdf5_validation.json` and `reports/export-hdf5_qa.md` in the export
+stage's artifact list. Errors produce a `blocked` export and a validation report.
+`reports/validation.json` remains the original input receipt. Derived exports
+read the completed, hash-verified canonical HDF5.
 
 Once an `extract-odb` attempt is recorded in the run manifest, export requires its
 successful completion and unchanged, registered `metadata.json` and `frames.csv`.
-Deleting or moving the extraction directory cannot revert the run to an
-experiment-only export. Missing evidence produces `blocked`; use a new run for a
-different workflow rather than removing stage artifacts.
+The recorded extraction remains a prerequisite throughout the run. Missing
+evidence produces `blocked`; use a new run directory for a different workflow.
 
 ## Build a training collection
 
@@ -248,16 +263,30 @@ generates both layouts without a solver. Training requires the `training` extra.
 pipeline inspect --run-dir runs/sample-001
 ```
 
-Prints the manifest with stage statuses, hashes, artifacts, commands, and limitations.
+Prints the manifest with stage statuses, hashes, artifacts, commands and
+diagnostics. The runtime record contains tool/Python/dependency versions and a
+fingerprint of package source and resource files. Other stage commands print a
+completion or failure summary; `pipeline --version` reports the package version.
+
+To create sorted checksums for an existing run:
+
+```text
+python scripts/hash_run_artifacts.py runs/sample-001
+```
+
+The command reads artifact bytes and writes `SHA256SUMS.txt` with relative paths.
+It excludes its own output, so repeated runs over unchanged artifacts produce
+the same contents. The [retry proposal](retry-design.md) describes a future
+attempt-directory workflow for maintainer review.
 
 ## Verification and scope
 
 ```text
-python -m pytest -q
+python -m pytest -q -rs --strict-markers
 python -m build
 ```
 
-These checks need no Abaqus. The installed-wheel integration test is separately
+The offline suite uses synthetic inputs. The installed-wheel integration test is
 enabled by `EXP2CPFE_WHEEL_DIR`; the opt-in solver test requires
 `EXP2CPFE_RUN_ABAQUS=1`, `EXP2CPFE_ABAQUS_CONFIG` and
 `EXP2CPFE_ABAQUS_RUN_DIR`. It starts from a nonexistent run directory and runs
@@ -265,8 +294,7 @@ validate, build-inp, datacheck, analysis, extraction, HDF5 export and NPZ export
 The user-supplied configuration must already declare a complete solver-ready,
 authorized model, one CPU, a timeout of at most 600 seconds per stage, and
 nonempty requested output fields with their units. The test enforces at most
-1000 elements and 10000 nodes before launching Abaqus. It does not prepare or
-calibrate missing material inputs.
+1000 elements and 10000 nodes before launching Abaqus.
 
 For a local PowerShell session, after preparing that small configuration:
 
@@ -280,11 +308,10 @@ Remove-Item Env:EXP2CPFE_RUN_ABAQUS
 
 The test verifies a nonempty ODB, read-only ODB hash stability, nonempty simulated
 HDF5 records with finite values and units, NPZ agreement, all seven completed
-stage receipts and recorded artifact hashes. An unavailable command or license
-reported as `blocked` produces an explicit pytest **skip**, never a passing
-solver test. Invalid model contracts and failed analysis/extraction/export
-remain failures. Inspect the `-rs` skip reasons when reporting results.
-
-Do not infer a real CPFE validation claim from fake-solver fixtures or offline
-synthetic tests. See [limitations](limitations.md) for the remaining scientific
-and adapter scope.
+stage receipts and recorded artifact hashes. The skip gate permits the two
+disabled opt-in checks and missing Torch imports in the offline profile. Every
+other skip fails the session, including an enabled solver check that encounters
+an unavailable command/license. `EXP2CPFE_TEST_PROFILE` selects `offline`
+(default), `cpu-training` or `ml`. CI retains Ubuntu/Windows offline checks,
+wheel verification, CPU training checks and a CPU ML job with actual PyG
+serialization/readback. See [capabilities and operating conditions](limitations.md).

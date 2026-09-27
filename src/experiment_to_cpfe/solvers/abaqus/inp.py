@@ -6,7 +6,7 @@ import re
 
 from experiment_to_cpfe.provenance.hashing import sha256_file
 from experiment_to_cpfe.schema.models import SamplePackage
-from experiment_to_cpfe.schema.validation import check_deck_readiness, check_solver_readiness
+from experiment_to_cpfe.schema.validation import ValidationPolicy, check_deck_readiness, check_solver_readiness
 
 
 KNOWN_MARKERS = frozenset(
@@ -52,7 +52,7 @@ def build_inp(request: SolverInputRequest) -> InpBuildResult:
 
 
 def render_inp(template_path: Path, replacements: dict[str, str]) -> tuple[str, set[str]]:
-    """Render in memory so semantic failures cannot leave a runnable output."""
+    """Render in memory for validation before creating the output file."""
     template = Path(template_path).read_text(encoding="utf-8")
     if "\x00" in template:
         raise ValueError("INP template contains a null byte")
@@ -81,8 +81,9 @@ def build_solver_input(
     sample: SamplePackage,
     template_path: Path,
     output_path: Path,
+    policy: ValidationPolicy | None = None,
 ) -> InpBuildResult:
-    readiness = check_solver_readiness(sample, "abaqus_cpfe")
+    readiness = check_solver_readiness(sample, "abaqus_cpfe", policy)
     if not readiness.ready:
         raise ValueError("; ".join(readiness.missing))
     replacements = sample.solver_inputs.get("inp_replacements")
@@ -91,7 +92,7 @@ def build_solver_input(
     if not all(isinstance(value, str) for value in replacements.values()):
         raise ValueError("INP replacements must be strings")
     rendered, markers = render_inp(template_path, replacements)
-    readiness = check_deck_readiness(sample, rendered)
+    readiness = check_deck_readiness(sample, rendered, policy)
     if not readiness.ready:
         raise ValueError("; ".join(readiness.missing))
     output_path = Path(output_path)

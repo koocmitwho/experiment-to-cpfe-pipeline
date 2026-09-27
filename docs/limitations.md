@@ -1,110 +1,100 @@
-# Version 0.1 scope and operating conditions
+# v0.2.1 capabilities and operating conditions
 
-Version 0.1 supports single-sample ingestion, validation, Abaqus preparation and
-execution, result extraction, and HDF5/NPZ packaging. The
-[format guide](data-modalities.md) identifies implemented parsers and formats
-handled as native references.
+Version 0.2.1 supports experimental-file import, sample normalization, dataset
+construction, evaluation and handoff checks, Abaqus preparation and execution,
+ODB field extraction, and HDF5/NPZ/PyG exports.
 
-## Scientific interpretation
+## Data foundation
 
-A CPFE run needs a material model and parameters, mesh and grain assignments,
-orientations, coordinate and unit conventions, loading conditions and output
-definitions. Mechanical curves serve as calibration or validation targets.
-Readiness checks this declared input contract. Physical validation additionally
-examines constitutive behavior, parameter identification, mesh convergence and
-agreement with experiments.
+| Command | Inputs and operations | Outputs and operating conditions |
+|---|---|---|
+| `import-experiment-file` | Self-describing JSON or the configured BAM LIS context profile; declared file hash, units, evidence class and context | Canonical HDF5, original metadata, unknown fields, context states and acquisition/processing-script receipts |
+| `normalize-sample` | Explicit table mappings, asset declarations and native imports; per-quantity units and coordinate conventions | HDF5 with readback, diagnostics, configuration and source receipts |
+| `build-training-dataset` | Canonical HDF5, table columns or scalar array components, row identities and grouping | v1 scalar or v2 ordered multi-target arrays; train/validation and optional test partitions; source, unit and task-contract records |
+| `check-evaluation-protocol` | Declared condition/group identities, splits, holdout axes and optional saved metric evidence | Unique counts, role-overlap checks, holdout metadata, metric values/units and explicit threshold comparisons |
+| `check-intake-status` | Selected checkpoints, reviewer, basis, status, conditions and evidence files | Reviewed checkpoint states, evidence receipts and a handoff report |
 
-The checked Abaqus profile supports flat three-dimensional solid meshes, one
-named isotropic-elastic, isotropic-plastic or explicit UMAT material, and one static displacement
-step. It compares the deck with the sample declarations. Grain-orientation
-columns can map to UMAT STATEV indices through complete
-`*INITIAL CONDITIONS, TYPE=SOLUTION` initialization. Assembly scoping, periodic
-equations and additional material/loading schemes need dedicated profiles.
-The constitutive implementation comes from the supplied material model or UMAT.
-The isotropic-plastic profile uses explicit elastic constants and an increasing
-stress/plastic-strain table. Isotropic continuum models can declare a material
-region and a reasoned inapplicable orientation. Crystalline profiles retain their
-orientation and grain-assignment requirements.
+The [data-foundation guide](data-foundation.md) provides commands and output
+locations. Import profiles and selectors provide the interpretation of each
+source format. Context states are `confirmed`, `unconfirmed`, `unavailable` and
+`not_applicable`, carrying the submitted basis for each declaration.
 
-Units are explicit per quantity. Table adapters execute declared affine
-conversions and preserve source and target units. Coordinate transforms,
-spatial registration and time synchronization require their own definitions.
-`measured`, `inferred`, `input` and `simulated` record evidence origin, while
-synthetic fixtures retain their generator description.
+Dataset columns align through unique row identities. Explicit affine conversion
+records source units, target units, scale, offset and rationale. Groups and
+physical target-source rows remain within one split. Shared workbooks can use a
+verified original specimen column to declare specimen-level partitions.
 
-## Input and result coverage
+`train-surrogate` consumes v1 scalar-target bundles with train, validation and
+test partitions. Its CPU MLP fits normalization on training rows and selects a
+checkpoint using validation MSE. The [training guide](training-datasets.md)
+provides the corresponding configuration and synthetic example.
 
-Configured ANG/CTF/text EBSD, selected HDF5 datasets, MAT5 numeric/struct/cell
-arrays, multichannel NPY, instrument blocks and XLSX value blocks have readers.
-Selected spreadsheet formulas need an evaluated-value export. Vendor binary
-EBSD and MATLAB class/MCOS data use upstream numerical exports.
+## Native data interfaces
 
-Geometry support includes scalar ASCII VTI and a selected Gmsh 2.2 ASCII profile
-with native Neper Rodrigues orientations. Binary/vector VTI, general VTK,
-DAMASK result semantics and FEPX execution are subsequent adapter work.
-Image correlation, segmentation, meshing and graph construction supply inputs
-through upstream tools.
+Readers cover explicit CSV/TXT/JSON/XLSX blocks, configured ANG/CTF text,
+selected HDF5 datasets, MAT5 numeric/struct/cell arrays, multichannel NPY,
+scalar ASCII VTI, Gmsh 2.2 ASCII and grain-graph text bundles. The
+[format guide](data-modalities.md) describes selectors and source declarations.
 
-ODB extraction reads requested field outputs and reports missing fields or
-locations. Small-strain `E` and logarithmic strain `LE` retain their distinct
-field names and measures. Broader history outputs and homogenized response
-calculations need additional extractors or postprocessing.
+Image assets and vendor-native files retain format, location and source records.
+Prepared numerical exports connect image processing, MATLAB object properties,
+spatial registration and instrument-specific decoding to the numerical readers.
+Upstream transformations retain their definitions and parent-asset records.
 
-The complete sample contract includes coordinates and orientation applicability.
-`pipeline adapt` handles earlier ingestion work, keeping selected arrays and
-listing declarations needed for promotion. The
-[native adapter guide](native-adapters.md) gives configurations and examples.
+HDF5 slicing and NPY selection bound the requested arrays. MAT5 loads the selected
+variable before selecting a nested field; working memory includes that variable
+or the decompressed HDF5 chunk. Dataset construction and derived exports assemble
+their selected payload in memory. Native numerical import defaults are 64 MiB
+for selected data and 128 MiB for MAT5/text source files.
 
-## Working size and data quality
+## Abaqus material and loading profiles
 
-The default workflow processes a small sample. Several readers and exports hold
-arrays in memory. HDF5 slicing and NPY selection bound the requested array,
-while peak memory also depends on compressed chunks and selected MAT5 variables.
-MAT5 cell/struct decoding loads the selected variable before accessing a leaf.
-HDF5 reference/compound and external/virtual storage need an upstream conversion
-that records their dependencies.
+The checked profile uses a flat three-dimensional solid mesh, one named material
+and one static displacement step. Supported elements are C3D4, C3D8, C3D8R,
+C3D10, C3D20 and C3D20R. The gate compares geometry, assignments, boundary
+conditions, material constants and output requests with the expanded deck.
 
-Quality masks and residuals preserve source values. Drafts retain nonfinite
-entries for inspection, and canonical promotion uses an explicitly selected
-finite subset. The training collection builder checks identities and group splits
-across canonical files using a declared sample, experiment or case grouping.
-Its target-source check keeps each raw target origin within one split by default.
-Native table blocks can declare an original specimen column and evidence, with
-verified row provenance, to partition a shared file into independent specimens.
-Repeated specimen identities and overlapping physical source rows remain within
-one split. This declaration does not establish independence between material batches.
-The optional CPU MLP interface
-trains explicitly grouped numerical bundles and selects its checkpoint on the
-validation split. Distributed execution and broader training architectures are
-later workflow extensions.
+- `isotropic_elastic` supplies explicit `E` and `nu` matching `*ELASTIC`.
+- `isotropic_plastic` adds at least two stress/plastic-strain pairs matching
+  one plain `*PLASTIC` block. Plastic strain starts at zero and increases
+  strictly; stress is positive and nondecreasing.
+- `umat` supplies constants, one unit per constant, a positive DEPVAR count
+  and the configured user-subroutine source. Grain orientation can map to
+  STATEV through complete `*INITIAL CONDITIONS, TYPE=SOLUTION` initialization.
 
-Training collection selection supports table columns and scalar array components,
-exact identity alignment, shared row slicing and explicit affine conversions.
-It holds the assembled collection in memory. Aggregation, interpolation and
-registration belong in upstream processing with recorded definitions. See the
-[training dataset guide](training-datasets.md) for input and output contracts.
+Isotropic models can use material-region mapping and a reasoned orientation
+applicability declaration. Crystalline declarations retain grain assignments,
+orientation conventions and the supplied constitutive model. Units, coordinate
+frames and tensor order are explicit. See the [runbook](runbook.md).
 
-The GH4169 ultrasonic example contains ten specimen summaries from one study.
-It retains the author's two test specimens and uses nested holdouts for the other
-eight. Its fixed two-feature MLP is less accurate than ordinary linear regression
-on both checks. These results exercise the ingestion and training workflow;
-additional independent specimens and acquisition conditions are needed to assess
-transfer to other material batches. The raw waveforms and metallographic
-measurement replicates are unavailable in the selected workbook.
+## Extraction, validation and export
 
-## Verification and distribution
+ODB extraction preserves requested field/component names and stored location
+labels. `E` and `LE` retain their respective strain measures. Each field has a
+declared unit; extracted rows bind to their simulated extraction asset.
 
-Source records and stage receipts keep inputs, conversions and outputs traceable.
-Run manifests belong with local run artifacts. Public candidates contain generic
-code, documentation and small synthetic fixtures.
+`frame_value` follows the ODB frame domain. `frame_time` is step-relative for
+TIME frames, with a separate clock for each source, step and load case. Ordinary
+table `time` is checked on its own clock. Each increment ID identifies one frame
+within its source/step/load path; multiple fields, components and locations share
+that frame. Full location/component identity determines row uniqueness.
 
-The public NTNU input bundle still needs full unit/convention confirmation and
-a profile for periodic equations. Existing toolchain/DISP checks establish the
-compile/link path. The recorded synthetic elastic solve exercises ODB extraction
-and HDF5/NPZ packaging against an analytic elastic result. Public experimental
-CPFE validation remains a separate work item.
+HDF5 export validates the merged sample and records the report in its own stage.
+The initial validation report remains the receipt for the initial sample.
+NPZ/PyG exports verify and read the canonical HDF5. `export.formats` declares
+the enabled export formats. PyG uses supplied graph arrays, node identities,
+feature names/units and directedness.
 
-Project code uses Apache-2.0. The [license review](licensing.md) describes the
-CC-BY-4.0 public tensile materials and separately licensed external inputs.
-Build and test evidence is recorded in the [release checklist](release_checklist.md)
-and dated verification reports.
+## Cases, evidence and distribution
+
+The public CuSn8Ni2 case covers the stated 0–0.8% small-strain gauge response
+with separate calibration, model-check and experimental-holdout specimens.
+The GH4169 case compares scalar regression methods on ten specimen summaries
+with the recorded development and author-test splits. Results and their case
+definitions are linked from the [README](../README.md).
+
+Stage receipts preserve inputs and artifacts; manifests record tool, Python,
+dependency versions and executing package-source fingerprints. Dated
+[verification records](verification/) retain the commands and evidence for each
+historical check. Project code uses Apache-2.0; third-party materials retain the
+terms listed in [licensing.md](licensing.md).

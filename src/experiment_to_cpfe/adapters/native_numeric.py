@@ -41,7 +41,7 @@ def inspect_npy_header(path: Path) -> dict:
 
 
 def local_hdf5_dataset(handle, location):
-    """A source-file hash cannot bind unregistered external or virtual storage."""
+    """Require selected data to reside in the registered source file."""
     if not isinstance(location, str) or location not in handle or not isinstance(handle[location], h5py.Dataset):
         raise ValueError("explicit numeric HDF5 dataset path is required")
     dataset = handle[location]

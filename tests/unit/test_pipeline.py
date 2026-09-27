@@ -45,7 +45,7 @@ def test_inspect_returns_manifest_summary(tmp_path, multimodal_sample_config, ca
     run_dir = tmp_path / "offline-run"
     config = str(multimodal_sample_config)
     assert main(["validate", "--config", config, "--run-dir", str(run_dir)]) == 0
-
+    assert "validate: completed" in capsys.readouterr().out
     assert main(["inspect", "--run-dir", str(run_dir)]) == 0
     payload = json.loads(capsys.readouterr().out)
     assert payload["stages"][-1]["stage"] == "validate"

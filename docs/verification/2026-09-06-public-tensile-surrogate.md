@@ -1,5 +1,14 @@
 # 公开拉伸数据到 FE 与神经网络的完整案例
 
+> **Correction added 2026-09-27:** The original twelve-case run artifacts reside
+> in the local ignored `runs/tensile-surrogate-20260906/` directory. This repository
+> contains the published summaries and figures, but no artifact checksum list
+> for that run, so third parties cannot verify its original artifact bytes from
+> the repository alone. Run `python scripts/hash_run_artifacts.py <run-directory>`
+> on the actual local artifacts to generate a dated receipt for review. This
+> correction supplies no reconstructed or assumed hashes; the original record
+> below is preserved.
+
 本次用 KupferDigital 的 CuSn8Ni2 拉伸数据完成了
 **实验读取 → 材料标定 → INP → Abaqus 求解 → ODB → HDF5/NPZ → MLP 训练 → 留出评估**。
 12 个小型 FE 算例共完成 84 个流水线阶段，训练模型、预测结果和对照图均已保存。

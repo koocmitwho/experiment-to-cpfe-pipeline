@@ -155,10 +155,10 @@ def evaluate(normalized_dir, output_dir, *, training_overrides=None):
     result = {"metrics": metrics, "predictions": predictions, "readback_max_abs_error": readback_error,
               "models": model_receipts, "baselines": baseline_receipts, "target_unit": "um",
               "normalization_manifest": str(normalized/"normalization.json"),
-              "limitations": ["10 specimens from one study; no independent acquisition replicates",
+              "limitations": ["10 specimen summaries from one published study",
                               "8 nested development predictions and 2 author test predictions",
                               "outer MLP members fit 4 specimens; final members fit 6; baselines refit on 6/8",
-                              "published summary features may already reflect author choices; raw waveforms unavailable",
+                              "features retain the published specimen-level summaries",
                               "pre-existing author test identities retained; both test labels were public before this work",
                               "CC-BY-NC-3.0 applies to the real data and retained derived artifacts"]}
     _write(output/"evaluation.json", result)
