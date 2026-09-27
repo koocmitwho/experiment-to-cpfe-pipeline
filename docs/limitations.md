@@ -1,6 +1,6 @@
-# v0.2.1 capabilities and operating conditions
+# v0.2.2 capabilities and operating conditions
 
-Version 0.2.1 supports experimental-file import, sample normalization, dataset
+Version 0.2.2 supports experimental-file import, sample normalization, dataset
 construction, evaluation and handoff checks, Abaqus preparation and execution,
 ODB field extraction, and HDF5/NPZ/PyG exports.
 
@@ -18,6 +18,12 @@ The [data-foundation guide](data-foundation.md) provides commands and output
 locations. Import profiles and selectors provide the interpretation of each
 source format. Context states are `confirmed`, `unconfirmed`, `unavailable` and
 `not_applicable`, carrying the submitted basis for each declaration.
+
+`check-evaluation-protocol` returns exit code 0 when configuration/evidence
+checks and report generation complete. A metric's `not_met` threshold or an
+unverified holdout remains an explicit finding in that report. The scientific
+claim status is a report field, not a command exit code. Invalid configuration,
+unreadable evidence and content-hash mismatches return exit code 1.
 
 Dataset columns align through unique row identities. Explicit affine conversion
 records source units, target units, scale, offset and rationale. Groups and

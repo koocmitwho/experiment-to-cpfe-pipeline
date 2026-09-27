@@ -181,14 +181,25 @@ def test_license_failure_is_blocked(tmp_path, monkeypatch):
     assert run_abaqus(request(tmp_path)).status == 'blocked'
 
 
+TIMEOUT_SECONDS = 1
+CHILD_SLEEP_SECONDS = 6
+MIN_TIMEOUT_FRACTION = 0.5
+
+
 def test_timeout_stops_owned_child_process(tmp_path):
     import subprocess
     import csv
     from dataclasses import replace
     from experiment_to_cpfe.solvers.abaqus.runner import run_abaqus
     import time
-    code="import subprocess,sys,time; p=subprocess.Popen([sys.executable,'-c','import time;time.sleep(6)']); print(p.pid,flush=True); time.sleep(6)"
-    req=replace(request(tmp_path,command=(sys.executable,'-c',code)),timeout_seconds=1)
+    child_code = f"import time;time.sleep({CHILD_SLEEP_SECONDS})"
+    code = (
+        "import subprocess,sys,time;"
+        f"p=subprocess.Popen([sys.executable,'-c',{child_code!r}]);"
+        "print(p.pid,flush=True);"
+        f"time.sleep({CHILD_SLEEP_SECONDS})"
+    )
+    req=replace(request(tmp_path,command=(sys.executable,'-c',code)),timeout_seconds=TIMEOUT_SECONDS)
     started=time.monotonic()
     result=run_abaqus(req)
     elapsed=time.monotonic()-started
@@ -203,7 +214,11 @@ def test_timeout_stops_owned_child_process(tmp_path):
     try:
         assert result.status=='failed'
         assert not alive, 'timeout left the owned child process running'
-        assert elapsed < 4, 'timeout waited for the un-terminated child to exit naturally'
+        # Detect an immediate return, allowing clock/scheduling variation.
+        assert elapsed >= TIMEOUT_SECONDS * MIN_TIMEOUT_FRACTION, 'timeout returned before the requested wait'
+        # Give CI scheduling and process-tree cleanup headroom after the timeout,
+        # while keeping a full timeout interval before the child's natural exit.
+        assert elapsed < CHILD_SLEEP_SECONDS - TIMEOUT_SECONDS, 'timeout waited for the un-terminated child to exit naturally'
     finally:
         if alive:
             if os.name == 'nt':

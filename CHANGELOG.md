@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.2.2 — 2026-09-27
+
+- Record effective solver commands, resolved command-file paths, streamed
+  SHA-256 digests and explicitly configured version probes in runtime manifests.
+- Retain the initial runtime snapshot and record a separate solver fingerprint
+  for each datacheck, analysis and extraction invocation. Preserve virtual
+  environment launcher paths when probing versions through symlinks.
+- Derive both timeout-test bounds from named constants and verify process-tree
+  cleanup repeatedly on Windows and Linux.
+- Document evaluation-report exit codes and cover successful findings and
+  execution errors with CLI tests.
+- Add source-distribution context for historical verification assets and append
+  dated account-link notes to the original repository records.
+
 ## 0.2.1 — 2026-09-27
 
 - Validate merged extraction records before canonical HDF5 export and retain

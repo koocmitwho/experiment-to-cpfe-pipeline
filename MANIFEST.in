@@ -4,6 +4,7 @@ recursive-include configs *.json *.yaml *.inp
 recursive-include docs *.md *.json *.png
 # Dated reports are preserved as repository history; packages ship current guides.
 recursive-exclude docs/verification *.md
+include docs/verification/assets/README
 prune docs/superpowers
 prune docs/research
 recursive-include examples *.py *.md *.json *.yaml *.csv *.txt *.inp

@@ -104,6 +104,7 @@ class AbaqusConfig(BaseModel):
     user_subroutine: Path | None = None
     cpus: int = Field(default=1, ge=1)
     timeout_seconds: int = Field(default=3600, ge=1)
+    version_probe_args: tuple[NonEmptyStr, ...] = ()
     required_fields: tuple[NonEmptyStr, ...] = ("S", "LE", "PEEQ", "SDV")
     extraction_position: Literal["integration_point", "nodal", "element_nodal", "element_face", "centroid", "native"] = "integration_point"
     extraction_max_records: int = Field(default=1000000, ge=1)

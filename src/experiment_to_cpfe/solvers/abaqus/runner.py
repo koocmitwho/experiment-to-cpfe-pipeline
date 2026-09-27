@@ -10,6 +10,7 @@ import shutil
 import subprocess
 import signal
 from experiment_to_cpfe.solvers.abaqus.bundle import stage_input_bundle
+from experiment_to_cpfe.provenance.solver_fingerprint import capture_solver_fingerprint
 
 
 class SolverStage(str, Enum):
@@ -30,6 +31,7 @@ class AbaqusRunRequest:
     input_bundle_root: Path | None = None
     input_bundle_manifest: Path | None = None
     input_bundle_destination: Path | None = None
+    version_probe_args: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -45,6 +47,7 @@ class SolverRunResult:
     limitations: tuple[str, ...]
     compile_status: str = "unverified"
     link_status: str = "unverified"
+    solver_fingerprint: dict[str, object] | None = None
 
 
 def _compiler_evidence(output: str) -> tuple[str, str]:
@@ -197,11 +200,13 @@ def run_abaqus(request: AbaqusRunRequest) -> SolverRunResult:
     compile_status = link_status = compile_link_status
     command = request.abaqus_command
     inputs = ()
+    fingerprint = None
     def result(status, limitations=(), return_code=None, artifacts=()):
         return SolverRunResult(stage=request.stage, status=status, command=command,
             return_code=return_code, stdout_path=stdout_path, stderr_path=stderr_path,
             artifacts=tuple(artifacts), compile_link_status=compile_link_status,
-            limitations=tuple(limitations), compile_status=compile_status, link_status=link_status)
+            limitations=tuple(limitations), compile_status=compile_status, link_status=link_status,
+            solver_fingerprint=fingerprint)
 
     if not request.abaqus_command:
         return result("blocked", ["Abaqus command is not configured"])
@@ -230,6 +235,9 @@ def run_abaqus(request: AbaqusRunRequest) -> SolverRunResult:
     except ValueError as exc:
         return result("blocked", [str(exc)], artifacts=inputs)
 
+    fingerprint = capture_solver_fingerprint(
+        request.abaqus_command, cwd=work_dir, version_probe_args=request.version_probe_args,
+    )
     try:
         completed = _execute_process(
             command,

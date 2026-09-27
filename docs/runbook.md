@@ -141,6 +141,30 @@ public source tree. An unavailable executable or an invalid staging path is
 reported as blocked. Solver errors and missing evidence are reported with the
 captured logs. Completion requires both the process result and stage artifacts.
 
+The manifest records the effective solver command, its resolved absolute file
+path and a streaming SHA-256 digest. To query a launcher version, add explicit
+arguments to the complete sample configuration:
+
+```yaml
+abaqus:
+  command: [abaqus]
+  version_probe_args: [information=release]
+```
+
+The default `version_probe_args: []` records file identity only. When configured,
+the probe appends these arguments to the command selected by configuration or
+`EXP2CPFE_ABAQUS_COMMAND`, with a three-second execution timeout and the runner's
+owned-process cleanup. Successful output becomes the version string; unavailable,
+failed, empty and timed-out probes record null values with diagnostic reasons.
+For `.bat` and `.cmd` launchers the digest identifies the launcher file itself.
+Probe execution preserves the selected path, including virtual-environment
+symlinks, while the recorded identity path resolves to the target file.
+
+`runtime.solver` keeps the initial snapshot. Each executed datacheck, analysis
+and extraction stage records its own `solver_fingerprint`, so changed commands
+or launcher bytes remain visible alongside the original runtime and receipts.
+Existing execution and artifact checks determine stage status.
+
 Datacheck and analysis use separate stage directories. Default execution is one
 CPU with a configured timeout; the chosen staging directory must be ASCII-only.
 Run datacheck first and inspect its status before analysis.

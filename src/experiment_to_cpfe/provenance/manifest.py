@@ -1,6 +1,7 @@
 """Run-directory creation and deterministic provenance manifests."""
 
 from datetime import datetime, timezone
+from copy import deepcopy
 import hashlib
 from importlib.metadata import version
 import json
@@ -10,6 +11,7 @@ import platform
 from experiment_to_cpfe import __version__
 
 from experiment_to_cpfe.provenance.hashing import sha256_file
+from experiment_to_cpfe.provenance.solver_fingerprint import capture_solver_fingerprint
 
 
 STAGE_DIRECTORIES = ("input", "solver", "dataset", "reports")
@@ -29,13 +31,14 @@ def source_fingerprint(package_root: Path) -> dict[str, object]:
             "encoding": "sha256-of-sorted-relative-file-digests-json"}
 
 
-def runtime_fingerprint() -> dict[str, object]:
+def runtime_fingerprint(*, solver: dict[str, object] | None = None) -> dict[str, object]:
     """Capture installed core dependencies and the package bytes executing a run."""
     return {
         "tool": {"name": "experiment-to-cpfe", "version": __version__},
         "python": {"version": platform.python_version(), "implementation": platform.python_implementation()},
         "dependencies": {name: version(name) for name in ("numpy", "h5py", "pandas", "pydantic", "PyYAML")},
         "code": source_fingerprint(Path(__file__).resolve().parents[1]),
+        "solver": deepcopy(solver) if solver is not None else capture_solver_fingerprint((), cwd=Path.cwd()),
     }
 
 
@@ -63,13 +66,19 @@ def build_run_manifest(
                     "sha256": sha256_file(path),
                     "size_bytes": path.stat().st_size,
                 }
+    solver = None
+    for stage in stage_records:
+        candidate = stage.get("solver_fingerprint")
+        if isinstance(candidate, dict):
+            solver = candidate
+            break
     return {
         "schema_version": "0.1",
         "created_at": datetime.now(timezone.utc).isoformat(),
         "run_dir": str(Path(run_dir)),
         "config_path": str(Path(config_path)),
         "config_sha256": sha256_file(config_path) if Path(config_path).is_file() else None,
-        "runtime": runtime_fingerprint(),
+        "runtime": runtime_fingerprint(solver=solver),
         "stages": stage_records,
         "artifacts": artifacts,
         "limitations": [
