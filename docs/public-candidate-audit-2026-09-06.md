@@ -1,5 +1,12 @@
 # 公开候选文件审查：2026-09-06
 
+> **Superseding note added 2026-09-27:** The repository now includes its
+> Apache-2.0 `LICENSE`, current project `NOTICE` and `THIRD_PARTY_NOTICES.md`.
+> This supersedes the historical statement below that the root lacked a
+> project license. `pyproject.toml` includes all three license files for
+> distribution. The original 2026-09-06 audit is retained as a dated snapshot;
+> current capabilities and commands are documented in the v0.2.0 guides.
+
 本记录覆盖上传候选文件和文档的审查，不是整个项目的最终发布结论。生产代码和测试
 仍在并行修改；最后一次测试、构建、归档检查和候选文件扫描应由最终验收报告记录。
 

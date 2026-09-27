@@ -1,7 +1,61 @@
 from pathlib import Path
+import os
 
 import numpy as np
 import pytest
+
+
+class _SkipGate:
+    """Fail sessions with skips outside the explicit job-specific allowance."""
+
+    def __init__(self, profile):
+        self.profile = profile
+        self.unexpected = []
+
+    def _observe(self, report):
+        if not report.skipped:
+            return
+        reason = str(report.longrepr[2]).removeprefix("Skipped: ")
+        node = report.nodeid.replace("\\", "/")
+        opt_ins = {
+            "tests/integration/test_abaqus_optional.py::test_user_supplied_real_abaqus_roundtrip": (
+                os.environ.get("EXP2CPFE_RUN_ABAQUS") != "1",
+                "real Abaqus integration is opt-in via EXP2CPFE_RUN_ABAQUS=1",
+            ),
+            "tests/integration/test_installed_wheel.py::test_wheel_installation_outside_checkout": (
+                not os.environ.get("EXP2CPFE_WHEEL_DIR"),
+                "set EXP2CPFE_WHEEL_DIR after building the wheel",
+            ),
+        }
+        disabled, expected_reason = opt_ins.get(node, (False, ""))
+        if disabled and reason == expected_reason:
+            return
+        if self.profile == "offline" and reason == "could not import 'torch': No module named 'torch'":
+            return
+        self.unexpected.append((node, reason))
+
+    def pytest_runtest_logreport(self, report):
+        self._observe(report)
+
+    def pytest_collectreport(self, report):
+        self._observe(report)
+
+    def pytest_sessionfinish(self, session, exitstatus):
+        if self.unexpected and exitstatus in (0, 1, 5):
+            session.exitstatus = pytest.ExitCode.TESTS_FAILED
+
+    def pytest_terminal_summary(self, terminalreporter):
+        if self.unexpected:
+            terminalreporter.section("Unexpected skips: test session failed", red=True)
+            for node, reason in self.unexpected:
+                terminalreporter.write_line(f"{node}: {reason}", red=True)
+
+
+def pytest_configure(config):
+    profile = os.environ.get("EXP2CPFE_TEST_PROFILE", "offline")
+    if profile not in {"offline", "cpu-training", "ml"}:
+        raise pytest.UsageError("EXP2CPFE_TEST_PROFILE must be offline, cpu-training or ml")
+    config.pluginmanager.register(_SkipGate(profile), "exp2cpfe-skip-gate")
 
 
 @pytest.fixture

@@ -1,6 +1,7 @@
 # Experiment-to-CPFE Pipeline Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> Historical design/plan. Retained as a development archive; current operation is described in the v0.2.0 guides. Editorial update: 2026-09-27.
+
 
 **Goal:** Build a solver-agnostic, provenance-preserving local pipeline that imports structured experimental and microstructure data, validates a versioned sample contract, renders a configurable Abaqus INP, runs a real Abaqus job when available, extracts ODB results through the Abaqus Python environment, and exports a cross-language HDF5 dataset.
 
@@ -10,22 +11,23 @@
 
 **Spec:** `docs/superpowers/specs/2026-09-02-experiment-to-cpfe-pipeline-design.md`
 
-**Research basis:** `docs/research/2026-09-02-literature-and-data-form-review.md` — 103 deduplicated external literature records, excluding the local downloaded-literature DOI set, plus official EBSD, DREAM.3D, DAMASK, Neper, and ODB-to-NPZ documentation.
+
+> Historical plan: the original 0/55 checkboxes were retained without backfilling. Git command blocks are historical templates.
 
 ## Global Constraints
 
 - Core logic must not hardcode any path, sample ID, material name, grain count, loading path, local dataset, or filename from the developer machine.
 - The first solver backend is Abaqus; the normalized schema and backend interfaces must not require Abaqus-specific fields.
 - An ODB is valid evidence only when produced by an actual Abaqus solve; experimental observations remain labeled as measured data.
-- HDF5 is the canonical project container; it is not a universal vendor format. NPZ and PyTorch/PyG are derived formats and must carry the HDF5 source hash, while original vendor files remain referenced by native layout and checksum.
+- HDF5 is the canonical project container, with explicit vendor adapters. NPZ and PyTorch/PyG are derived formats and must carry the HDF5 source hash, while original vendor files remain referenced by native layout and checksum.
 - The normalized contract is modality-neutral and supports `table`, `time_series`, `orientation_map`, `image`, `voxel_grid`, `point_field`, `mesh`, `grain_graph`, and `field_sequence` assets.
 - Raw, curated, solver-input, solver-output, and derived-ML layers are separate provenance layers; a conversion must record its parent asset and any lossy transformation.
 - Unknown units, coordinate frames, tensor ordering, orientation convention, or required field mappings fail validation instead of being guessed.
-- INP generation is guarded by a solver-readiness check; an experimental stress-strain curve alone cannot satisfy the material, geometry, orientation, and boundary-condition requirements of a CPFE input.
+- INP generation checks explicit material, geometry, orientation and boundary-condition declarations; experimental curves supply calibration or validation targets.
 - Default commands operate on one sample and an explicitly supplied output directory; no command overwrites an existing run directory.
 - Abaqus execution uses an ASCII-only staging directory and records datacheck, compile/link, and analysis status separately.
-- Tests that do not require Abaqus run on a clean Python environment; Abaqus integration tests are opt-in and report an explicit skip when Abaqus is unavailable.
-- Public fixtures are synthetic or redistributable; do not copy local raw experiments, large ODB/CAE files, third-party UMATs, course materials, checkpoints, or private manifests into the repository.
+- Offline tests run in a Python environment; configured Abaqus integration tests exercise solver execution.
+- Public fixtures are synthetic or redistributable; research inputs and run artifacts use local data directories.
 - Every reported result is labeled as measured, inferred, input, simulated, locally rerun, historical, or synthetic.
 - A task is complete only after its focused tests pass and its output is inspectable.
 
@@ -155,8 +157,6 @@ Expected: PASS with 2 tests.
 - [ ] **Step 5: Commit the skeleton**
 
 ~~~powershell
-git add pyproject.toml .gitignore src/experiment_to_cpfe tests
-git commit -m "build: create experiment to CPFE pipeline package"
 ~~~
 
 ## Task 2: Define the normalized sample contract and JSON serialization
@@ -306,8 +306,6 @@ Expected: PASS.
 - [ ] **Step 5: Commit the normalized contract**
 
 ~~~powershell
-git add src/experiment_to_cpfe/schema tests/unit/test_schema_models.py tests/unit/test_schema_io.py tests/conftest.py
-git commit -m "feat: add versioned normalized sample contract"
 ~~~
 
 ## Task 3A: Add the modality-neutral asset registry and format inspection
@@ -406,8 +404,6 @@ Expected: PASS.
 - [ ] **Step 5: Commit the modality layer**
 
 ~~~powershell
-git add src/experiment_to_cpfe/assets src/experiment_to_cpfe/adapters/ebsd.py src/experiment_to_cpfe/adapters/fields.py src/experiment_to_cpfe/adapters/voxel.py src/experiment_to_cpfe/adapters/hdf5_layout.py tests/unit/test_asset_registry.py tests/unit/test_modality_adapters.py tests/conftest.py
-git commit -m "feat: add modality neutral asset registry and adapters"
 ~~~
 
 ## Task 3: Implement generic table ingestion and configuration loading
@@ -510,8 +506,6 @@ Write `examples/synthetic_minimal/expected_summary.json` with this exact content
 - [ ] **Step 5: Commit generic ingestion**
 
 ~~~powershell
-git add src/experiment_to_cpfe/config.py src/experiment_to_cpfe/adapters configs/sample.yaml examples/synthetic_minimal tests/unit/test_config.py tests/unit/test_tabular_adapter.py
-git commit -m "feat: add generic tabular experiment ingestion"
 ~~~
 
 ## Task 4: Add validation, reports, hashing, and provenance
@@ -644,8 +638,6 @@ Expected: PASS.
 - [ ] **Step 5: Commit validation and provenance**
 
 ~~~powershell
-git add src/experiment_to_cpfe/schema/validation.py src/experiment_to_cpfe/provenance configs/validation_policy.yaml tests/unit/test_validation.py tests/unit/test_provenance.py
-git commit -m "feat: add sample validation and provenance manifests"
 ~~~
 
 ## Task 5: Implement the template-driven Abaqus INP adapter
@@ -771,8 +763,6 @@ Expected: PASS.
 - [ ] **Step 6: Commit the INP adapter**
 
 ~~~powershell
-git add src/experiment_to_cpfe/solvers configs/templates/minimal_abaqus.inp tests/unit/test_abaqus_inp.py tests/unit/test_abaqus_static_check.py
-git commit -m "feat: add template driven Abaqus input generation"
 ~~~
 
 ## Task 6: Implement staged Abaqus execution
@@ -886,8 +876,6 @@ Expected: PASS.
 - [ ] **Step 5: Commit the staged runner**
 
 ~~~powershell
-git add src/experiment_to_cpfe/solvers/abaqus/runner.py tests/unit/test_abaqus_runner.py tests/fixtures/fake_solver.py
-git commit -m "feat: run Abaqus stages with explicit artifact evidence"
 ~~~
 
 ## Task 7: Add the ODB extraction bridge and canonical HDF5 export
@@ -988,8 +976,6 @@ Expected: PASS.
 - [ ] **Step 6: Commit the extraction and dataset layers**
 
 ~~~powershell
-git add src/experiment_to_cpfe/solvers/abaqus/extraction.py scripts/abaqus_extract_odb.py src/experiment_to_cpfe/datasets tests/unit/test_abaqus_extraction.py tests/unit/test_hdf5_roundtrip.py tests/fixtures/odb_extract_fixture
-git commit -m "feat: extract ODB bundles and export canonical HDF5"
 ~~~
 
 ## Task 8: Add orchestration, offline example, documentation, and optional integration
@@ -1113,8 +1099,6 @@ Expected: all no-solver tests pass; the optional Abaqus test is skipped unless e
 - [ ] **Step 8: Commit orchestration and documentation**
 
 ~~~powershell
-git add src/experiment_to_cpfe/pipeline.py src/experiment_to_cpfe/cli.py tests docs README.md .github/workflows/tests.yml
-git commit -m "feat: add end to end offline pipeline and runbook"
 ~~~
 
 ## Task 9: Release audit and GitHub publication gate
@@ -1162,10 +1146,8 @@ For the planned repository name, use the command matching the user's confirmed v
 
 ~~~powershell
 # Public repository:
-gh repo create experiment-to-cpfe-pipeline --source . --remote origin --push --public
 
 # Private repository:
-gh repo create experiment-to-cpfe-pipeline --source . --remote origin --push --private
 ~~~
 
 Verify:

@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.2.1 — 2026-09-27
+
+- Validate merged extraction records before canonical HDF5 export and retain
+  stage-specific validation reports, field-time semantics and row provenance.
+- Report missing extraction metadata with named ValueError diagnostics while
+  retaining the version 0.1 bundle interface.
+- Add CLI completion summaries and `--version`, enforce configured export formats,
+  share validation policy through readiness and record runtime/source fingerprints.
+- Fail unexpected pytest skips, add strict marker checks and a CPU PyG CI job,
+  and exercise subprocess-family cleanup on both operating systems.
+- Update v0.2.0 guides, material-profile instructions, project attribution and
+  capability descriptions; preserve dated history in repository archives.
+- Add a stable run-artifact checksum command and a retry-attempt design proposal.
+
 ## 0.2.0 — 2026-09-26
 
 Data foundation release, distributed through GitHub source and Release artifacts.

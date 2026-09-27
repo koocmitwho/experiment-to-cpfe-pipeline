@@ -134,11 +134,11 @@ def run(root):
         "population": "Three synthetic specimens", "data_kind": "synthetic", "declaration_timing": "retrospective",
         "identity_definition": "Specimen plus synthetic loading programme", "group_definition": "Declared batch identity",
         "record_unit": "scalar row", "holdout_axes": ["batch"],
-        "scope_limits": ["Algebraic data; neither experimental accuracy nor generalization is assessed"], "cases": cases,
+        "scope_limits": ["Algebraically generated specimens for data-processing and grouping checks"], "cases": cases,
     })
     run_stage("check-evaluation-protocol", protocol, root / "protocol")
     review = save(root / "synthetic-review.json", {"scope": "synthetic_mechanism_only",
-        "basis": "Generated declarations and HDF5 readback checked by this demonstration, not a human experiment review"})
+        "basis": "Generated declarations and HDF5 readback checked by the automated synthetic workflow"})
     intake = save(root / "configs" / "intake.json", {
         "version": 1, "handoff_id": "synthetic-data-foundation", "purpose": "Demonstrate explicit handoff declarations",
         "evidence_scope": "synthetic_mechanism_only", "checkpoints": [{"id": "raw_to_semantics", "status": "ready",

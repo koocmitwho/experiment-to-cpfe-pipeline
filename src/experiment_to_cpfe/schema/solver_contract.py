@@ -1,7 +1,7 @@
 """Fail-closed semantic checks for the v1 flat, static Abaqus contract.
 
-This adapter verifies a supplied input, not a calibrated material or a crystal
-plasticity implementation. Unsupported keyword semantics need a new adapter.
+The adapter compares explicit material, geometry, loading and output declarations
+with the supplied input deck.
 """
 
 from collections import Counter

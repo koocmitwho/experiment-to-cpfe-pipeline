@@ -119,7 +119,7 @@ def check_input_assets(sample, asset_ids):
 def _axis_value(source, pointer):
     from experiment_to_cpfe.evaluation_protocol import _pointer
     value = _pointer(source, pointer)
-    # An unresolved context value is not a verified specimen/batch identity.
+    # Resolve specimen/batch identities from confirmed context declarations.
     parent = _pointer(source, pointer.rsplit('/', 1)[0]) if pointer.count('/') > 1 else source
     if isinstance(parent, dict) and 'status' in parent and parent['status'] != 'confirmed':
         raise ValueError(f'independence axis has unconfirmed identity: {pointer}')

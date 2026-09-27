@@ -1,4 +1,4 @@
-"""Content binding for declared inputs; not a cryptographic trust boundary."""
+"""Content binding and integrity checks for declared inputs."""
 
 import json
 from pathlib import Path

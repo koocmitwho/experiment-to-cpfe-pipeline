@@ -129,8 +129,8 @@ def _json(value) -> str:
 def run_dataset_build(config_path: Path, output_dir: Path) -> dict:
     """Write a new dataset directory and its declared training-input configuration.
 
-    The installed trainer must separately support the declared target format and
-    split population; dataset construction does not establish model support.
+    The scalar trainer consumes v1 target declarations and train/validation/test
+    partitions; v2 construction records an ordered target list.
     """
     import yaml
 

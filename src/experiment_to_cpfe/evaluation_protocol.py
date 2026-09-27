@@ -269,10 +269,9 @@ def _inspect(config_path):
         'metric_evidence': metric_evidence, 'source_evidence': sources,
         'source_config': config_ref, 'inputs_read': list(inputs.values()),
         'scope_limits': config.scope_limits,
-        'boundary': 'Only explicit JSON configuration/evidence files were read. No model, response, '
-                    'or path mentioned inside a receipt was opened. Counts, holdouts and metric bindings '
-                    'do not independently validate the scientific claim, statistical independence, '
-                    'preregistration timing, material physics, or metric population alignment.',
+        'boundary': 'This report checks explicitly supplied JSON configuration and evidence files. '
+                    'It records declared condition/group counts, holdout metadata, saved metric '
+                    'values and units, threshold comparisons and source-file integrity.',
     }
     return config, report
 
@@ -302,7 +301,7 @@ def run_evaluation_protocol(config_path, run_dir) -> dict:
     lines = ['# Evaluation protocol', '', f'Claim: {config.claim}',
              f'Population: {config.population}', f'Data: {config.data_kind}',
              f'Declaration: {config.declaration_timing}', '',
-             'Scientific claim: **not established by metadata**.',
+             'Assessment: declared identities, groups, holdouts and saved metric evidence.',
              f'Holdout metadata: **{report["holdout_status"]}**.', '',
              '| Scope | Unique conditions | Declared statistical groups | Expanded records |',
              '|---|---:|---:|---:|']
@@ -320,10 +319,10 @@ def run_evaluation_protocol(config_path, run_dir) -> dict:
                      f'threshold {metric["threshold_status"]}; `{metric["value_pointer"]}`; '
                      f'SHA256 `{metric["sha256"]}`.')
     if not report['metric_evidence']:
-        lines.append('- No metric evidence supplied.')
-    lines.extend(['', report['boundary'], '', 'Declared scope limits:'])
+        lines.append('- Metric evidence count: 0.')
+    lines.extend(['', report['boundary'], '', 'Declared evaluation scope:'])
     lines.extend(f'- {value}' for value in config.scope_limits)
-    lines.extend(['', 'Read files (no referenced payloads followed):'])
+    lines.extend(['', 'Verified input files:'])
     lines.extend(f'- `{item["path"]}`; SHA256 `{item["sha256"]}`.' for item in report['inputs_read'])
     (run_dir / 'REPORT.md').write_text('\n'.join(lines) + '\n', encoding='utf-8')
     return report

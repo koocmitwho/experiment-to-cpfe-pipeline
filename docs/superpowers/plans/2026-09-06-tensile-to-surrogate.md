@@ -1,5 +1,7 @@
 # Tensile to surrogate implementation plan
 
+> Historical design/plan. Retained as a development archive; current operation is described in the v0.2.0 guides. Editorial update: 2026-09-27.
+
 **Goal:** Execute a public experimental calibration, real FE response generation,
 canonical packaging, neural training and held-out evaluation.
 

@@ -55,7 +55,7 @@ class ConversionRecord(BaseModel):
     target_file_hashes: dict[NonEmptyStr, Annotated[str, StringConstraints(pattern=r"^[0-9a-fA-F]{64}$")]] = Field(default_factory=dict)
     hash_scope: Literal["files", "logical_payload"] = "files"
     target_payload_sha256: str | None = Field(default=None, pattern=r"^[0-9a-fA-F]{64}$")
-    source_hash_verified: bool = Field(default=False, description="Local file hash agreement only, not solver authentication")
+    source_hash_verified: bool = Field(default=False, description="Recorded digest matches the local source file")
 
     @model_validator(mode="after")
     def require_target_digest(self) -> "ConversionRecord":

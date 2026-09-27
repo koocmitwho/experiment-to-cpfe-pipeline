@@ -4,6 +4,7 @@ import argparse
 import json
 from pathlib import Path
 import sys
+from experiment_to_cpfe import __version__
 from experiment_to_cpfe.errors import PipelineError
 
 from experiment_to_cpfe.pipeline import (
@@ -17,15 +18,16 @@ from experiment_to_cpfe.pipeline import (
 )
 
 DATA_COMMANDS = {
-    "normalize-sample": "Normalize declared data and units without solver-readiness requirements.",
+    "normalize-sample": "Normalize declared data and units into canonical samples.",
     "import-experiment-file": "Preserve declared file context, original metadata and source hashes.",
     "check-evaluation-protocol": "Check declared identities, groups and saved metric evidence.",
-    "check-intake-status": "Record reviewed handoff states without starting downstream work.",
+    "check-intake-status": "Record reviewed handoff states and their supporting evidence.",
 }
 
 
 def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="pipeline")
+    parser.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
     commands = parser.add_subparsers(dest="command", required=True)
     for name, description in DATA_COMMANDS.items():
         command = commands.add_parser(name, help=description, description=description)
@@ -94,7 +96,7 @@ def main(argv: list[str] | None = None) -> int:
         print(str(exc), file=sys.stderr)
         return 1
     if args.command == "check-evaluation-protocol":
-        # The audit reports facts and limits; scientific claim status is not an exit code.
+        # Command completion is the protocol report's execution result.
         completed = True
     elif args.command == "check-intake-status":
         completed = result.get("processing_status") == "completed"
@@ -103,6 +105,13 @@ def main(argv: list[str] | None = None) -> int:
     if args.command in DATA_COMMANDS:
         print(json.dumps(result, ensure_ascii=False, indent=2),
               file=sys.stdout if completed else sys.stderr)
+    else:
+        status = result.get("status", "completed" if completed else "failed")
+        detail = "; ".join(str(item) for item in result.get("limitations", ()))
+        summary = f"{args.command}: {status}; run directory: {args.run_dir}"
+        if detail:
+            summary += f"; {detail}"
+        print(summary, file=sys.stdout if completed else sys.stderr)
     return 0 if completed else 1
 
 

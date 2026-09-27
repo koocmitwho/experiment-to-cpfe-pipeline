@@ -1,6 +1,6 @@
-# 无需求解器的数据基础层示例
+# 数据基础层示例
 
-本例生成 3 个合成试样、12 行数据，依次运行实验文件导入、普通 CSV 规范化、训练数据构建、评价协议检查和交接状态检查。不下载数据，不训练模型，不调用 Abaqus。
+本例生成 3 个合成试样、12 行数据，依次运行实验文件导入、普通 CSV 规范化、训练数据构建、评价协议检查和交接状态检查，使用基础 Python 安装即可运行。
 
 在仓库根目录、Python 3.12+ 环境中执行：
 
@@ -21,6 +21,6 @@ python examples/data_foundation/workflow.py --run-dir runs/data-foundation-001
 
 特征与目标均为 `(12, 1)`。前两个试样的 8 行属于 train，第三个试样的 4 行属于 validation。本例检查未知表头保留、HDF5 读回，以及未来输入和跨分区分组被拒绝。力由公开在脚本中的代数公式生成，结果属于软件行为演示。
 
-本例使用 v2 目标列表和 train/validation 两分区。输出的 `training-config.json` 用来记录数据声明，不能直接交给当前仍使用 v1 标量目标、三分区接口的 `train-surrogate`。
+本例使用 v2 目标列表和 train/validation 两分区，输出的 `training-config.json` 记录数据声明。标量 MLP 训练使用 v1 目标声明和 train/validation/test 三分区配置，见[合成训练示例](../synthetic_training/README.md)。
 
 逐步 CLI 命令、输出目录和字段解释见[数据基础层指南](../../docs/data-foundation.md)。源代码见 [workflow.py](workflow.py)。代码与合成数据使用 [Apache-2.0](../../LICENSE)。

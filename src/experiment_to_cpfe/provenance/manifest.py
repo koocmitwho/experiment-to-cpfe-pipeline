@@ -1,13 +1,42 @@
 """Run-directory creation and deterministic provenance manifests."""
 
 from datetime import datetime, timezone
+import hashlib
+from importlib.metadata import version
 import json
 from pathlib import Path
+import platform
+
+from experiment_to_cpfe import __version__
 
 from experiment_to_cpfe.provenance.hashing import sha256_file
 
 
 STAGE_DIRECTORIES = ("input", "solver", "dataset", "reports")
+
+
+def source_fingerprint(package_root: Path) -> dict[str, object]:
+    """Hash relative source/resource names and their bytes in stable order."""
+    root = Path(package_root)
+    files = {
+        path.relative_to(root).as_posix(): sha256_file(path)
+        for path in sorted(root.rglob("*"))
+        if path.is_file() and (path.suffix in {".py", ".yaml"} or path.name == "py.typed")
+        and "__pycache__" not in path.parts
+    }
+    payload = json.dumps(files, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    return {"sha256": hashlib.sha256(payload).hexdigest(), "files": files,
+            "encoding": "sha256-of-sorted-relative-file-digests-json"}
+
+
+def runtime_fingerprint() -> dict[str, object]:
+    """Capture installed core dependencies and the package bytes executing a run."""
+    return {
+        "tool": {"name": "experiment-to-cpfe", "version": __version__},
+        "python": {"version": platform.python_version(), "implementation": platform.python_implementation()},
+        "dependencies": {name: version(name) for name in ("numpy", "h5py", "pandas", "pydantic", "PyYAML")},
+        "code": source_fingerprint(Path(__file__).resolve().parents[1]),
+    }
 
 
 def create_run_directory(root: Path, sample_id: str, run_id: str) -> Path:
@@ -40,6 +69,7 @@ def build_run_manifest(
         "run_dir": str(Path(run_dir)),
         "config_path": str(Path(config_path)),
         "config_sha256": sha256_file(config_path) if Path(config_path).is_file() else None,
+        "runtime": runtime_fingerprint(),
         "stages": stage_records,
         "artifacts": artifacts,
         "limitations": [

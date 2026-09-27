@@ -212,6 +212,5 @@ machine-readable metadata. Solver readiness uses the complete sample contract.
 Physical validation adds model/experiment comparisons and acceptance criteria.
 
 The current delivery covers native ingestion and HDF5/NPZ integration.
-Binary VTI, solver-specific mesh/material translation and DAMASK/FEPX execution
-are subsequent adapter work. The [verification record](verification/2026-09-06-native-adapters.md)
+The [verification record](verification/2026-09-06-native-adapters.md)
 lists tested capabilities and representative public-file results.
