@@ -48,7 +48,7 @@ def test_shared_file_independent_specimens_keep_full_provenance(tmp_path, specim
     assert len({s["assets"][0]["sha256"] for s in result.metadata["sources"]}) == 1
     assert result.metadata["sources"][2]["target_partitions"][0] == {
         "asset_id": "asset-source-0000", "specimen": "c", "records": [["", 6], ["", 7]],
-        "evidence": "original specimen column in synthetic CSV", "column": "specimen"}
+        "evidence": "original specimen column in synthetic CSV", "column": "specimen", "source_column": 0}
 
 
 @pytest.mark.parametrize("unscoped", [0, 2, 5, "all"])
@@ -63,7 +63,7 @@ def test_scoped_and_whole_file_cannot_mix_across_splits(tmp_path, specimens, uns
 
 @pytest.mark.parametrize("change,match", [
     ({"column": "missing"}, "specimen.*mapped"),
-    ({"column": "x"}, "specimen.*group"),
+    ({"column": "x"}, "specimen.*(group|original text)"),
     ({"evidence": ""}, "evidence"),
     ({"column": "specimen", "rename": True}, "extra"),
 ])

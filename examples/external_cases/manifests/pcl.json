@@ -1,0 +1,986 @@
+{
+  "version": 1,
+  "case": "pcl",
+  "doi": "10.5281/zenodo.10995304",
+  "source_page": "https://zenodo.org/records/10995304",
+  "license": "CC-BY-4.0",
+  "purpose": "All twelve instrument channels retained; time/temperature to stress fields demonstrate numeric packaging only, not a scientific prediction task",
+  "sources": [
+    {
+      "path": "TensileTestAtTdef_PCLSG10_1.csv",
+      "sha256": "14683ed5ebdde3b43b55f6edc890c117c7495824a02d89307af410793a3d4c39"
+    },
+    {
+      "path": "TensileTestAtTdef_PCLSG10_2.csv",
+      "sha256": "6cf1b8c6227e83aae5c380c72e00c9acf8c5cd8b5cb895efde1ce900aa15c073"
+    },
+    {
+      "path": "TensileTestAtTdef_PCLSG10_3.csv",
+      "sha256": "936b5d10514eff1821f2b6451cd326f05852a02a77d13ec6ccc891837fcdaeb3"
+    }
+  ],
+  "records": [
+    {
+      "id": "PCLSG10-replicate-1",
+      "source": "TensileTestAtTdef_PCLSG10_1.csv",
+      "sha256": "14683ed5ebdde3b43b55f6edc890c117c7495824a02d89307af410793a3d4c39",
+      "output_name": "TensileTestAtTdef_PCLSG10_1.csv",
+      "role": "train",
+      "identity_evidence": "Author dataset description explicitly identifies filename suffix n as replicate",
+      "context": {
+        "material": "PCLSG10",
+        "batch": "unknown",
+        "instrument": "Q800 Controlled Force",
+        "record_scope": "complete preheat/equilibration/loading; not constant temperature",
+        "method_header": [
+          [
+            "OrgMethod",
+            "01:00",
+            "Data",
+            "storage",
+            "On",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            ""
+          ],
+          [
+            "OrgMethod",
+            "02:00",
+            "Equilibrate",
+            "at",
+            "95",
+            "°C",
+            "",
+            "",
+            "",
+            "",
+            "",
+            ""
+          ],
+          [
+            "OrgMethod",
+            "03:00",
+            "Isothermal",
+            "for",
+            "2",
+            "min",
+            "",
+            "",
+            "",
+            "",
+            "",
+            ""
+          ],
+          [
+            "OrgMethod",
+            "04:00",
+            "Ramp",
+            "force",
+            "0.1",
+            "N/min",
+            "to",
+            "18",
+            "N",
+            "",
+            "",
+            ""
+          ]
+        ]
+      },
+      "reader": {
+        "format": "csv",
+        "delimiter": ";",
+        "encoding": "latin-1",
+        "start_row": 56,
+        "fields": [
+          "time_min",
+          "temperature_C",
+          "displacement_um",
+          "force_N",
+          "position_mm",
+          "length_mm",
+          "stress_MPa",
+          "strain_percent",
+          "stiffness_N_per_m",
+          "relaxation_modulus_MPa",
+          "creep_compliance_um2_per_N",
+          "pressure_kPa"
+        ],
+        "units": [
+          "min",
+          "degC",
+          "um",
+          "N",
+          "mm",
+          "mm",
+          "MPa",
+          "%",
+          "N/m",
+          "MPa",
+          "um^2/N",
+          "kPa"
+        ],
+        "header_checks": [
+          {
+            "row": 55,
+            "column": 0,
+            "value": "StartOfData"
+          },
+          {
+            "row": 36,
+            "column": 0,
+            "value": "Sig1"
+          },
+          {
+            "row": 36,
+            "column": 1,
+            "value": "Time"
+          },
+          {
+            "row": 36,
+            "column": 2,
+            "value": "(min)"
+          },
+          {
+            "row": 37,
+            "column": 0,
+            "value": "Sig2"
+          },
+          {
+            "row": 37,
+            "column": 1,
+            "value": "Temperature"
+          },
+          {
+            "row": 37,
+            "column": 2,
+            "value": "(°C)"
+          },
+          {
+            "row": 38,
+            "column": 0,
+            "value": "Sig3"
+          },
+          {
+            "row": 38,
+            "column": 1,
+            "value": "Displacement"
+          },
+          {
+            "row": 38,
+            "column": 2,
+            "value": "(µm)"
+          },
+          {
+            "row": 39,
+            "column": 0,
+            "value": "Sig4"
+          },
+          {
+            "row": 39,
+            "column": 1,
+            "value": "Static"
+          },
+          {
+            "row": 39,
+            "column": 2,
+            "value": "Force"
+          },
+          {
+            "row": 39,
+            "column": 3,
+            "value": "(N)"
+          },
+          {
+            "row": 40,
+            "column": 0,
+            "value": "Sig5"
+          },
+          {
+            "row": 40,
+            "column": 1,
+            "value": "Position"
+          },
+          {
+            "row": 40,
+            "column": 2,
+            "value": "(mm)"
+          },
+          {
+            "row": 41,
+            "column": 0,
+            "value": "Sig6"
+          },
+          {
+            "row": 41,
+            "column": 1,
+            "value": "Length"
+          },
+          {
+            "row": 41,
+            "column": 2,
+            "value": "(mm)"
+          },
+          {
+            "row": 42,
+            "column": 0,
+            "value": "Sig7"
+          },
+          {
+            "row": 42,
+            "column": 1,
+            "value": "Stress"
+          },
+          {
+            "row": 42,
+            "column": 2,
+            "value": "(MPa)"
+          },
+          {
+            "row": 43,
+            "column": 0,
+            "value": "Sig8"
+          },
+          {
+            "row": 43,
+            "column": 1,
+            "value": "Strain"
+          },
+          {
+            "row": 43,
+            "column": 2,
+            "value": "(%)"
+          },
+          {
+            "row": 44,
+            "column": 0,
+            "value": "Sig9"
+          },
+          {
+            "row": 44,
+            "column": 1,
+            "value": "Stiffness"
+          },
+          {
+            "row": 44,
+            "column": 2,
+            "value": "(N/m)"
+          },
+          {
+            "row": 45,
+            "column": 0,
+            "value": "Sig10"
+          },
+          {
+            "row": 45,
+            "column": 1,
+            "value": "Relaxation"
+          },
+          {
+            "row": 45,
+            "column": 2,
+            "value": "Modulus"
+          },
+          {
+            "row": 45,
+            "column": 3,
+            "value": "(MPa)"
+          },
+          {
+            "row": 46,
+            "column": 0,
+            "value": "Sig11"
+          },
+          {
+            "row": 46,
+            "column": 1,
+            "value": "Creep"
+          },
+          {
+            "row": 46,
+            "column": 2,
+            "value": "Compliance"
+          },
+          {
+            "row": 46,
+            "column": 3,
+            "value": "(µm²/N)"
+          },
+          {
+            "row": 47,
+            "column": 0,
+            "value": "Sig12"
+          },
+          {
+            "row": 47,
+            "column": 1,
+            "value": "GCA"
+          },
+          {
+            "row": 47,
+            "column": 2,
+            "value": "Pressure"
+          },
+          {
+            "row": 47,
+            "column": 3,
+            "value": "(kPa"
+          },
+          {
+            "row": 47,
+            "column": 4,
+            "value": "gauge)"
+          }
+        ]
+      }
+    },
+    {
+      "id": "PCLSG10-replicate-2",
+      "source": "TensileTestAtTdef_PCLSG10_2.csv",
+      "sha256": "6cf1b8c6227e83aae5c380c72e00c9acf8c5cd8b5cb895efde1ce900aa15c073",
+      "output_name": "TensileTestAtTdef_PCLSG10_2.csv",
+      "role": "validation",
+      "identity_evidence": "Author dataset description explicitly identifies filename suffix n as replicate",
+      "context": {
+        "material": "PCLSG10",
+        "batch": "unknown",
+        "instrument": "Q800 Controlled Force",
+        "record_scope": "complete preheat/equilibration/loading; not constant temperature",
+        "method_header": [
+          [
+            "OrgMethod",
+            "01:00",
+            "Data",
+            "storage",
+            "On",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            ""
+          ],
+          [
+            "OrgMethod",
+            "02:00",
+            "Equilibrate",
+            "at",
+            "95",
+            "°C",
+            "",
+            "",
+            "",
+            "",
+            "",
+            ""
+          ],
+          [
+            "OrgMethod",
+            "03:00",
+            "Isothermal",
+            "for",
+            "2",
+            "min",
+            "",
+            "",
+            "",
+            "",
+            "",
+            ""
+          ],
+          [
+            "OrgMethod",
+            "04:00",
+            "Ramp",
+            "force",
+            "0.1",
+            "N/min",
+            "to",
+            "18",
+            "N",
+            "",
+            "",
+            ""
+          ]
+        ]
+      },
+      "reader": {
+        "format": "csv",
+        "delimiter": ";",
+        "encoding": "latin-1",
+        "start_row": 56,
+        "fields": [
+          "time_min",
+          "temperature_C",
+          "displacement_um",
+          "force_N",
+          "position_mm",
+          "length_mm",
+          "stress_MPa",
+          "strain_percent",
+          "stiffness_N_per_m",
+          "relaxation_modulus_MPa",
+          "creep_compliance_um2_per_N",
+          "pressure_kPa"
+        ],
+        "units": [
+          "min",
+          "degC",
+          "um",
+          "N",
+          "mm",
+          "mm",
+          "MPa",
+          "%",
+          "N/m",
+          "MPa",
+          "um^2/N",
+          "kPa"
+        ],
+        "header_checks": [
+          {
+            "row": 55,
+            "column": 0,
+            "value": "StartOfData"
+          },
+          {
+            "row": 36,
+            "column": 0,
+            "value": "Sig1"
+          },
+          {
+            "row": 36,
+            "column": 1,
+            "value": "Time"
+          },
+          {
+            "row": 36,
+            "column": 2,
+            "value": "(min)"
+          },
+          {
+            "row": 37,
+            "column": 0,
+            "value": "Sig2"
+          },
+          {
+            "row": 37,
+            "column": 1,
+            "value": "Temperature"
+          },
+          {
+            "row": 37,
+            "column": 2,
+            "value": "(°C)"
+          },
+          {
+            "row": 38,
+            "column": 0,
+            "value": "Sig3"
+          },
+          {
+            "row": 38,
+            "column": 1,
+            "value": "Displacement"
+          },
+          {
+            "row": 38,
+            "column": 2,
+            "value": "(µm)"
+          },
+          {
+            "row": 39,
+            "column": 0,
+            "value": "Sig4"
+          },
+          {
+            "row": 39,
+            "column": 1,
+            "value": "Static"
+          },
+          {
+            "row": 39,
+            "column": 2,
+            "value": "Force"
+          },
+          {
+            "row": 39,
+            "column": 3,
+            "value": "(N)"
+          },
+          {
+            "row": 40,
+            "column": 0,
+            "value": "Sig5"
+          },
+          {
+            "row": 40,
+            "column": 1,
+            "value": "Position"
+          },
+          {
+            "row": 40,
+            "column": 2,
+            "value": "(mm)"
+          },
+          {
+            "row": 41,
+            "column": 0,
+            "value": "Sig6"
+          },
+          {
+            "row": 41,
+            "column": 1,
+            "value": "Length"
+          },
+          {
+            "row": 41,
+            "column": 2,
+            "value": "(mm)"
+          },
+          {
+            "row": 42,
+            "column": 0,
+            "value": "Sig7"
+          },
+          {
+            "row": 42,
+            "column": 1,
+            "value": "Stress"
+          },
+          {
+            "row": 42,
+            "column": 2,
+            "value": "(MPa)"
+          },
+          {
+            "row": 43,
+            "column": 0,
+            "value": "Sig8"
+          },
+          {
+            "row": 43,
+            "column": 1,
+            "value": "Strain"
+          },
+          {
+            "row": 43,
+            "column": 2,
+            "value": "(%)"
+          },
+          {
+            "row": 44,
+            "column": 0,
+            "value": "Sig9"
+          },
+          {
+            "row": 44,
+            "column": 1,
+            "value": "Stiffness"
+          },
+          {
+            "row": 44,
+            "column": 2,
+            "value": "(N/m)"
+          },
+          {
+            "row": 45,
+            "column": 0,
+            "value": "Sig10"
+          },
+          {
+            "row": 45,
+            "column": 1,
+            "value": "Relaxation"
+          },
+          {
+            "row": 45,
+            "column": 2,
+            "value": "Modulus"
+          },
+          {
+            "row": 45,
+            "column": 3,
+            "value": "(MPa)"
+          },
+          {
+            "row": 46,
+            "column": 0,
+            "value": "Sig11"
+          },
+          {
+            "row": 46,
+            "column": 1,
+            "value": "Creep"
+          },
+          {
+            "row": 46,
+            "column": 2,
+            "value": "Compliance"
+          },
+          {
+            "row": 46,
+            "column": 3,
+            "value": "(µm²/N)"
+          },
+          {
+            "row": 47,
+            "column": 0,
+            "value": "Sig12"
+          },
+          {
+            "row": 47,
+            "column": 1,
+            "value": "GCA"
+          },
+          {
+            "row": 47,
+            "column": 2,
+            "value": "Pressure"
+          },
+          {
+            "row": 47,
+            "column": 3,
+            "value": "(kPa"
+          },
+          {
+            "row": 47,
+            "column": 4,
+            "value": "gauge)"
+          }
+        ]
+      }
+    },
+    {
+      "id": "PCLSG10-replicate-3",
+      "source": "TensileTestAtTdef_PCLSG10_3.csv",
+      "sha256": "936b5d10514eff1821f2b6451cd326f05852a02a77d13ec6ccc891837fcdaeb3",
+      "output_name": "TensileTestAtTdef_PCLSG10_3.csv",
+      "role": "test",
+      "identity_evidence": "Author dataset description explicitly identifies filename suffix n as replicate",
+      "context": {
+        "material": "PCLSG10",
+        "batch": "unknown",
+        "instrument": "Q800 Controlled Force",
+        "record_scope": "complete preheat/equilibration/loading; not constant temperature",
+        "method_header": [
+          [
+            "OrgMethod",
+            "01:00",
+            "Data",
+            "storage",
+            "On",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            ""
+          ],
+          [
+            "OrgMethod",
+            "02:00",
+            "Equilibrate",
+            "at",
+            "95",
+            "°C",
+            "",
+            "",
+            "",
+            "",
+            "",
+            ""
+          ],
+          [
+            "OrgMethod",
+            "03:00",
+            "Isothermal",
+            "for",
+            "2",
+            "min",
+            "",
+            "",
+            "",
+            "",
+            "",
+            ""
+          ],
+          [
+            "OrgMethod",
+            "04:00",
+            "Ramp",
+            "force",
+            "0.1",
+            "N/min",
+            "to",
+            "18",
+            "N",
+            "",
+            "",
+            ""
+          ]
+        ]
+      },
+      "reader": {
+        "format": "csv",
+        "delimiter": ";",
+        "encoding": "latin-1",
+        "start_row": 56,
+        "fields": [
+          "time_min",
+          "temperature_C",
+          "displacement_um",
+          "force_N",
+          "position_mm",
+          "length_mm",
+          "stress_MPa",
+          "strain_percent",
+          "stiffness_N_per_m",
+          "relaxation_modulus_MPa",
+          "creep_compliance_um2_per_N",
+          "pressure_kPa"
+        ],
+        "units": [
+          "min",
+          "degC",
+          "um",
+          "N",
+          "mm",
+          "mm",
+          "MPa",
+          "%",
+          "N/m",
+          "MPa",
+          "um^2/N",
+          "kPa"
+        ],
+        "header_checks": [
+          {
+            "row": 55,
+            "column": 0,
+            "value": "StartOfData"
+          },
+          {
+            "row": 36,
+            "column": 0,
+            "value": "Sig1"
+          },
+          {
+            "row": 36,
+            "column": 1,
+            "value": "Time"
+          },
+          {
+            "row": 36,
+            "column": 2,
+            "value": "(min)"
+          },
+          {
+            "row": 37,
+            "column": 0,
+            "value": "Sig2"
+          },
+          {
+            "row": 37,
+            "column": 1,
+            "value": "Temperature"
+          },
+          {
+            "row": 37,
+            "column": 2,
+            "value": "(°C)"
+          },
+          {
+            "row": 38,
+            "column": 0,
+            "value": "Sig3"
+          },
+          {
+            "row": 38,
+            "column": 1,
+            "value": "Displacement"
+          },
+          {
+            "row": 38,
+            "column": 2,
+            "value": "(µm)"
+          },
+          {
+            "row": 39,
+            "column": 0,
+            "value": "Sig4"
+          },
+          {
+            "row": 39,
+            "column": 1,
+            "value": "Static"
+          },
+          {
+            "row": 39,
+            "column": 2,
+            "value": "Force"
+          },
+          {
+            "row": 39,
+            "column": 3,
+            "value": "(N)"
+          },
+          {
+            "row": 40,
+            "column": 0,
+            "value": "Sig5"
+          },
+          {
+            "row": 40,
+            "column": 1,
+            "value": "Position"
+          },
+          {
+            "row": 40,
+            "column": 2,
+            "value": "(mm)"
+          },
+          {
+            "row": 41,
+            "column": 0,
+            "value": "Sig6"
+          },
+          {
+            "row": 41,
+            "column": 1,
+            "value": "Length"
+          },
+          {
+            "row": 41,
+            "column": 2,
+            "value": "(mm)"
+          },
+          {
+            "row": 42,
+            "column": 0,
+            "value": "Sig7"
+          },
+          {
+            "row": 42,
+            "column": 1,
+            "value": "Stress"
+          },
+          {
+            "row": 42,
+            "column": 2,
+            "value": "(MPa)"
+          },
+          {
+            "row": 43,
+            "column": 0,
+            "value": "Sig8"
+          },
+          {
+            "row": 43,
+            "column": 1,
+            "value": "Strain"
+          },
+          {
+            "row": 43,
+            "column": 2,
+            "value": "(%)"
+          },
+          {
+            "row": 44,
+            "column": 0,
+            "value": "Sig9"
+          },
+          {
+            "row": 44,
+            "column": 1,
+            "value": "Stiffness"
+          },
+          {
+            "row": 44,
+            "column": 2,
+            "value": "(N/m)"
+          },
+          {
+            "row": 45,
+            "column": 0,
+            "value": "Sig10"
+          },
+          {
+            "row": 45,
+            "column": 1,
+            "value": "Relaxation"
+          },
+          {
+            "row": 45,
+            "column": 2,
+            "value": "Modulus"
+          },
+          {
+            "row": 45,
+            "column": 3,
+            "value": "(MPa)"
+          },
+          {
+            "row": 46,
+            "column": 0,
+            "value": "Sig11"
+          },
+          {
+            "row": 46,
+            "column": 1,
+            "value": "Creep"
+          },
+          {
+            "row": 46,
+            "column": 2,
+            "value": "Compliance"
+          },
+          {
+            "row": 46,
+            "column": 3,
+            "value": "(µm²/N)"
+          },
+          {
+            "row": 47,
+            "column": 0,
+            "value": "Sig12"
+          },
+          {
+            "row": 47,
+            "column": 1,
+            "value": "GCA"
+          },
+          {
+            "row": 47,
+            "column": 2,
+            "value": "Pressure"
+          },
+          {
+            "row": 47,
+            "column": 3,
+            "value": "(kPa"
+          },
+          {
+            "row": 47,
+            "column": 4,
+            "value": "gauge)"
+          }
+        ]
+      }
+    }
+  ],
+  "grouping_evidence": "Author-defined complete replicate 1/train,2/validation,3/test; distinct original files, unknown batch independence",
+  "limitations": [
+    "全时段包含预热、平衡与加载；不能称为恒温95°C完整曲线。",
+    "三个replicate不是三个已证明独立材料批次；各行不是独立实验。",
+    "time/temperature到stress仅检查数值建集，保留legacy_unassessed；不训练。",
+    "力、应力、位移、长度、模量与柔量有派生关系；不得把同时输入的拟合当材料规律。",
+    "所有test数据已在格式核对中读取，test只是软件分区标签，不是封存盲测。"
+  ]
+}

@@ -113,7 +113,10 @@ Output units come from `features`, `target` or `targets`. A conversion computes
 
 All rows of one group remain in one split. Train and validation are required for
 construction, and test is optional; each present split has at least two rows.
-The scalar trainer requires all three. The builder checks sample identity, file
+The scalar trainer defaults to all three. Explicit `evaluation_mode: external_test`
+requires exactly train/validation and leaves test responses external. It accepts
+v1 scalar bundles only; v2 target lists are rejected before model output creation.
+The builder checks sample identity, file
 content, existing split declarations and native target group/split declarations.
 
 Target origins are checked across splits by file digest and URI. Shared feature
@@ -137,6 +140,16 @@ The builder checks specimen and worksheet/row intersections. Whole-file and
 specimen-level source partitions remain consistent. `dataset.json` records
 `target_partitions`, including specimen, source rows, identity column and basis.
 The original source URI, digest and asset chain remain attached.
+
+`column_partitions` bind every compatible selected feature/target to
+the original text identity column, sheet/row and complete conversion receipt.
+Changing the identity column does not establish independent scope. Strict task
+contracts use those verified scopes; uncovered roots remain whole-file.
+
+Version 0.3.0 adds `infer-surrogate`, `evaluate-surrogate` and two scalar
+`template-config` drafts. Contracts propagate unchanged; predictions use frozen
+training normalization, evaluation aligns sample/row/group identity and does not
+reopen model/training sources. [Real-case guide](real-case-workflow.en.md).
 
 ## v2 and task declarations
 

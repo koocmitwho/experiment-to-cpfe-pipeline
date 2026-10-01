@@ -13,7 +13,7 @@ from experiment_to_cpfe.datasets.package import _load_source
 from experiment_to_cpfe.assets.registry import array_payload_sha256
 from experiment_to_cpfe.datasets.training_columns import select_column
 from experiment_to_cpfe.datasets.training_config import TrainingDatasetConfig
-from experiment_to_cpfe.datasets.training_sources import TargetSourceIndex, register_target_sources
+from experiment_to_cpfe.datasets.training_sources import TargetSourceIndex, register_target_sources, collect_column_partitions
 from experiment_to_cpfe.learning.data_contract import TRAINING_ARRAYS, TRAINING_FORMAT, VECTOR_TRAINING_FORMAT, validate_group_splits
 from experiment_to_cpfe.provenance.hashing import sha256_file
 
@@ -87,11 +87,14 @@ def build_training_dataset(config, *, base_dir: Path) -> TrainingDataset:
                     "source_rows": [column.source_rows[index] for index in order],
                     "asset_ids": [column.asset_ids[index] for index in order],
                 }
+            column_partitions = collect_column_partitions(sample, column_records, layout.columns,
+                item.target_specimen, group, required=[q.name for q in config.target_quantities])
             partitions = []
             for quantity in config.target_quantities:
-                partitions.extend(register_target_sources(
-                    sample, column_records[quantity.name], layout.columns[quantity.name],
-                    item.target_specimen, item.split, group, target_sources))
+                scopes = column_partitions.get(quantity.name, [])
+                register_target_sources(sample, column_records[quantity.name]['asset_ids'],
+                    item.split, group, target_sources, scopes)
+                partitions.extend(scopes)
             for quantity in config.features:
                 check_input_assets(sample, column_records[quantity.name]['asset_ids'])
             width = len(config.features)
@@ -103,7 +106,8 @@ def build_training_dataset(config, *, base_dir: Path) -> TrainingDataset:
                             "assets": [asset.model_dump(mode="json") for asset in sample.assets],
                             "source_manifest": provenance, "solver_inputs": sample.solver_inputs,
                             "group": group, "split": item.split, "row_ids": row_ids,
-                            "columns": column_records, "target_partitions": partitions})
+                            "columns": column_records, "target_partitions": partitions,
+                            "column_partitions": column_partitions})
         except (ValueError, KeyError, TypeError, IndexError, OSError) as exc:
             raise ValueError(f"{context}: {exc}") from exc
     arrays = [np.concatenate([chunk[index] for chunk in chunks]) for index in range(6)]

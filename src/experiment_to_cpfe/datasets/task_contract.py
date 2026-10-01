@@ -119,7 +119,7 @@ def check_input_assets(sample, asset_ids):
 def _axis_value(source, pointer):
     from experiment_to_cpfe.evaluation_protocol import _pointer
     value = _pointer(source, pointer)
-    # Resolve specimen/batch identities from confirmed context declarations.
+    # An unresolved context value is not a verified specimen/batch identity.
     parent = _pointer(source, pointer.rsplit('/', 1)[0]) if pointer.count('/') > 1 else source
     if isinstance(parent, dict) and 'status' in parent and parent['status'] != 'confirmed':
         raise ValueError(f'independence axis has unconfirmed identity: {pointer}')
@@ -134,6 +134,7 @@ def assess_task(value, features, targets, sources):
     if value is None:
         return dict(status='legacy_unassessed', physical_validity='not_established')
     task = TaskContract.model_validate(value)
+    from experiment_to_cpfe.datasets.training_sources import selected_root_scopes, partitions_overlap
     owners, roots, gaps, identities = {}, {}, [], []
     for source in sources:
         group, role = source['group'], source.get('split', 'inference')
@@ -145,25 +146,20 @@ def assess_task(value, features, targets, sources):
             previous = owners.setdefault((axis, identity), (group, role))
             if previous != (group, role):
                 raise ValueError(f'independence axis {axis!r} reused across groups or roles: {identity!r}')
-        assets = {a['asset_id']: a for a in source['assets']}
-        selected_roots = set()
-        for column in source['columns'].values():
-            for asset_id in set(column['asset_ids']):
-                asset = assets[asset_id]
-                while asset.get('parent_asset_id') is not None:
-                    asset = assets[asset['parent_asset_id']]
-                selected_roots.add(asset['asset_id'])
         root_tokens = set()
-        for asset_id in selected_roots:
-            asset = assets[asset_id]
-            tokens = ['uri:' + asset['uri']]
-            if asset.get('sha256'):
-                tokens.append('sha256:' + asset['sha256'].lower())
+        for asset, partition in selected_root_scopes(source):
+            tokens = ['uri:' + asset.uri]
+            if asset.sha256:
+                tokens.append('sha256:' + asset.sha256.lower())
             for token in tokens:
-                previous = roots.setdefault(token, (group, role))
-                if previous != (group, role):
+                records = roots.setdefault(token, [])
+                if any(previous != (group, role) and partitions_overlap(previous_scope, partition)
+                       for previous, previous_scope in records):
                     raise ValueError('selected root source reused across independent groups or roles')
-                root_tokens.add(token)
+                records.append(((group, role), partition))
+                suffix = '' if partition is None else ':specimen:' + json.dumps(
+                    [partition['source_column'], partition['specimen']], ensure_ascii=False, separators=(',', ':'))
+                root_tokens.add(token + suffix)
         context = source['solver_inputs'].get('experiment_context', {}).get('fields', {})
         preprocessing = context.get('preprocessing')
         if preprocessing is not None:

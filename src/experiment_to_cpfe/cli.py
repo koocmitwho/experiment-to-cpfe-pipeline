@@ -33,7 +33,7 @@ def _parser() -> argparse.ArgumentParser:
         command = commands.add_parser(name, help=description, description=description)
         command.add_argument("--config", required=True, type=Path)
         command.add_argument("--run-dir", required=True, type=Path)
-    for name in ("adapt", "build-training-dataset", "train-surrogate", "validate", "build-inp", "stage-input-bundle", "extract-odb"):
+    for name in ("adapt", "build-training-dataset", "train-surrogate", "infer-surrogate", "evaluate-surrogate", "validate", "build-inp", "stage-input-bundle", "extract-odb"):
         command = commands.add_parser(name)
         command.add_argument("--config", required=True, type=Path)
         command.add_argument("--run-dir", required=True, type=Path)
@@ -47,6 +47,10 @@ def _parser() -> argparse.ArgumentParser:
     export.add_argument("--format", required=True, choices=("hdf5", "npz", "pyg"))
     inspect = commands.add_parser("inspect")
     inspect.add_argument("--run-dir", required=True, type=Path)
+    template=commands.add_parser('template-config',help='Draft scalar inference/evaluation config with preserved declarations.')
+    template.add_argument('--kind',required=True,choices=('infer-surrogate','evaluate-surrogate'))
+    template.add_argument('--from-config',required=True,type=Path)
+    template.add_argument('--output',required=True,type=Path)
     return parser
 
 
@@ -56,7 +60,18 @@ def main(argv: list[str] | None = None) -> int:
     except SystemExit as exc:
         return int(exc.code)
     try:
-        if args.command == "normalize-sample":
+        if args.command == 'template-config':
+            from experiment_to_cpfe.learning.templates import make_template,write_template
+            result=write_template(args.output,make_template(args.kind,from_config=args.from_config))
+            print(json.dumps(result,ensure_ascii=False))
+            return 0
+        elif args.command == 'infer-surrogate':
+            from experiment_to_cpfe.learning.inference import run_inference
+            result=run_inference(args.config,args.run_dir)
+        elif args.command == 'evaluate-surrogate':
+            from experiment_to_cpfe.learning.inference import run_evaluation
+            result=run_evaluation(args.config,args.run_dir)
+        elif args.command == "normalize-sample":
             from experiment_to_cpfe.datasets.normalization import run_normalization
             result = run_normalization(args.config, args.run_dir)
         elif args.command == "import-experiment-file":

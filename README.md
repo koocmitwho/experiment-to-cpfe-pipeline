@@ -2,6 +2,8 @@
 
 [English](README.en.md)
 
+**v0.3.0 公开工作流**：新增 [DOPAMICS 完整真实案例](docs/real-case-workflow.md)，可完成接入、整试样分组、CPU OLS/MLP、独立预测和 CSV/中文评价。原数据许可为 CC BY 4.0；本次指标不支持模型有效结论。迁移范围见 [能力与许可审查](docs/public-usability-migration.md)。发布状态与验证证据见[本轮报告](docs/verification/2026-09-30-public-usability.md)。
+
 把实验与微结构数据整理成可追溯的样本包，再按需要准备 Abaqus 输入、提取求解结果和构建机器学习数据集。
 
 项目在数据处理过程中保存单位、坐标、张量顺序、取向约定、样本身份和来源记录。模型配置记录材料参数、网格、加载条件和评价方案。
@@ -58,7 +60,7 @@ python examples/data_foundation/workflow.py --run-dir runs/data-foundation-001
 
 HDF5 是规范样本包。导出前会校验合并后的实验与仿真记录，并保存本阶段报告。NPZ/PyG 从已校验的 HDF5 导出，保留相关数据及来源元信息；PyG 使用显式图数组和特征声明。启用的格式由 `export.formats` 指定。具体格式和求解器条件见[能力与运行条件](docs/limitations.md)。
 
-数据集构建支持 v1 标量目标和 v2 有序目标列表，并支持 train/validation 开发数据。`train-surrogate` 使用标量 CPU MLP，接收 v1 目标声明和 train/validation/test 三分区配置，完整操作见[训练数据指南](docs/training-datasets.md)。
+数据集构建支持 v1 标量目标和 v2 有序目标列表。`train-surrogate` 仍只接收 v1 标量声明，默认要求 train/validation/test；v0.3.0 增加显式 `external_test` 模式用于 train/validation 拟合和独立测试，详见[真实案例指南](docs/real-case-workflow.md)。v2 包会明确拒绝，不自动转换为训练输入。
 
 ## 已有公开案例
 

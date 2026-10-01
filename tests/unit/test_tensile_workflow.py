@@ -89,3 +89,19 @@ def test_error_metrics_keep_physical_units_and_zero_reference_scale():
     assert result['bias']==-.5
     assert result['nrmse']==pytest.approx(2**-.5/2)
     assert regression_metrics(np.zeros(2),np.ones(2))['nrmse'] is None
+
+
+@pytest.mark.parametrize('reference,prediction,nrmse,r2', [
+    ([2., 4.], [1., 3.], .25, 0.),
+    ([0., 0.], [1., 1.], None, None),
+    ([2., 2.], [1., 3.], .5, None),
+    ([-2., -2.], [-1., -3.], .5, None),
+])
+def test_metric_normalization_and_constant_reference_contract(reference, prediction, nrmse, r2):
+    from experiment_to_cpfe.mechanics.tensile import regression_metrics
+    result = regression_metrics(reference, prediction)
+    for key, expected in [('nrmse', nrmse), ('r2', r2)]:
+        if expected is None:
+            assert result[key] is None
+        else:
+            assert result[key] == pytest.approx(expected)

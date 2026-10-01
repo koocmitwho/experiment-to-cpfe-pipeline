@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.3.0 — 2026-10-01
+
+- Add scalar OLS and explicit external-test training with train-only fitting
+  and validation-only model selection; preserve default three-partition training.
+- Add independent frozen inference, identity-aligned evaluation, strict config
+  templates and readable CSV/reports with source, unit and model receipts.
+- Verify original specimen scopes and conversion lineage across selected columns
+  and reject source overlap, target contamination and incompatible v2 bundles.
+- Add fixed CC BY 4.0 DOPAMICS, FAIR Train and PCL manifests and portable examples.
+  Raw data, trained weights and case outputs remain outside the distribution.
+- Correct NRMSE documentation to max-absolute-reference normalization and verify
+  zero and constant references. Negative R² and mixed RMSE/MAE results remain
+  explicit; software verification does not establish scientific validity.
+
 ## 0.2.2 — 2026-09-27
 
 - Record effective solver commands, resolved command-file paths, streamed
