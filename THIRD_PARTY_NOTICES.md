@@ -64,6 +64,39 @@ test evaluation and does not reuse the author's fitted multi-parameter model.
 
 ## External references and optional inputs
 
+### DOPAMICS, FAIR Train and PCL fixed manifests: CC BY 4.0
+
+DOPAMICS source: *DOPAMICS | Tensile tests-Mechanical data from DIC and laser extensometry*,
+Paul Cathelineau (IRD, data curator), with Romain Léger (data collector) and the
+contributors credited in the [official record](https://zenodo.org/records/15343816),
+DOI [10.5281/zenodo.15343816](https://doi.org/10.5281/zenodo.15343816).
+
+FAIR Train source: [FAIR Train: tensile testing data](https://zenodo.org/records/19007867),
+DOI [10.5281/zenodo.19007867](https://doi.org/10.5281/zenodo.19007867), with full
+creator/contributor credit in that record. Creators as listed: Brian, Schuster;
+Erwin, Cazares; Edgar, Tarin; Wodo, Olga.
+
+PCL source: [Dataset for Tailoring the stress-free two-way shape memory effect in
+sol-gel crosslinked poly(ε-caprolactone)-based semicrystalline networks](https://zenodo.org/records/10995304),
+DOI [10.5281/zenodo.10995304](https://doi.org/10.5281/zenodo.10995304), with full
+creator/contributor credit in that record. Creators: Nicoletta Inverardi,
+Maurizio Toselli, Massimo Messori, Giulia Scalet, Ferdinando Auricchio and
+Stefano Pandini.
+
+All three data records declare [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
+The source-derived specimen metadata, native layout and source references in
+`examples/external_cases/manifests/{dopamics,fair-train,pcl}.json` retain that license.
+The project adds file/member SHA256 receipts, fixed roles and processing budgets.
+The original project driver, generic modules and synthetic tests use Apache-2.0;
+no upstream scripts, raw measurements, trained weights or case outputs are bundled.
+
+DOPAMICS processing keeps original native rows, converts percent laser strain by
+0.01, fits normalization/OLS on training specimens, selects OLS/MLP using validation,
+then evaluates a separate specimen. FAIR preserves original workbook channels
+without stress conversion or training. PCL preserves all instrument channels and
+preheating records, builds a numerical dataset and does not train. Generated data
+and results retain source attribution; these creators do not endorse this project.
+
 `configs/public_sources/ntnu_ri_27daafa.json` identifies an optional fixed
 revision of NTNU's crystal-plasticity input bundle and records its MIT license.
 The repository contains the source manifest, with the referenced UMAT and

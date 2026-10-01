@@ -1,0 +1,214 @@
+{
+  "version": 1,
+  "case": "fair-train",
+  "doi": "10.5281/zenodo.19007867",
+  "source_page": "https://zenodo.org/records/19007867",
+  "license": "CC-BY-4.0",
+  "purpose": "Preserve original brass instrument workbook records only; no model training or stress conversion",
+  "sources": [
+    {
+      "path": "TensileTestProject.zip",
+      "sha256": "e2f0aa23c3d9ec3982b18157791b5479dfa37e66b5decc501776b418a52fe0ed"
+    }
+  ],
+  "records": [
+    {
+      "id": "BRASS",
+      "source": "TensileTestProject.zip",
+      "member": "TensileTestProject/data/dataClass2025/rawData/BRASS_Crosshead_Extensometer_displacement_S20 50mm Gage Length ASTM E8 Metals Tension (Extensometer-Crosshead) 269- Test Run 1-Test Run 1-Crosshead data.xlsx",
+      "sha256": "c7a58d780f45efa7eed2f9b7c2ddcaf816c24a82745d678fe456f2688b5f68a5",
+      "output_name": "BRASS.xlsx",
+      "role": "intake",
+      "identity_evidence": "Original workbook filename prefix; finite source-file identity only, no batch equivalence assertion",
+      "context": {
+        "material_label": "brass",
+        "alloy_grade": "unknown",
+        "batch": "unknown",
+        "heat_treatment": "unknown",
+        "temperature": "unknown",
+        "prescribed_loading_rate": "unknown",
+        "acquisition_date": "unconfirmed"
+      },
+      "reader": {
+        "format": "xlsx",
+        "sheet": "Sheet2",
+        "start_row": 3,
+        "fields": [
+          "row_id",
+          "force",
+          "crosshead_displacement",
+          "extensometer_displacement",
+          "time"
+        ],
+        "units": [
+          "1",
+          "N",
+          "mm",
+          "mm",
+          "s"
+        ],
+        "header_checks": [
+          {
+            "row": 2,
+            "column": 0,
+            "value": "Index"
+          },
+          {
+            "row": 2,
+            "column": 1,
+            "value": "Load (N)"
+          },
+          {
+            "row": 2,
+            "column": 2,
+            "value": "Crosshead (mm)"
+          },
+          {
+            "row": 2,
+            "column": 3,
+            "value": "Extensometer (mm)"
+          },
+          {
+            "row": 2,
+            "column": 4,
+            "value": "Time (sec)"
+          }
+        ]
+      }
+    },
+    {
+      "id": "Brass_2",
+      "source": "TensileTestProject.zip",
+      "member": "TensileTestProject/data/dataClass2025/rawData/Brass_2_Crosshead_Extensometer_displacement_S20 50mm Gage Length ASTM E8 Metals Tension (Extensometer-Crosshead) 273- Test Run 1-Test Run 1.xlsx",
+      "sha256": "822c82ce800af5c829a401c670d40e1e5ba55dce10d5bb5ee9888e46f561b5ba",
+      "output_name": "Brass_2.xlsx",
+      "role": "intake",
+      "identity_evidence": "Original workbook filename prefix; finite source-file identity only, no batch equivalence assertion",
+      "context": {
+        "material_label": "brass",
+        "alloy_grade": "unknown",
+        "batch": "unknown",
+        "heat_treatment": "unknown",
+        "temperature": "unknown",
+        "prescribed_loading_rate": "unknown",
+        "acquisition_date": "unconfirmed"
+      },
+      "reader": {
+        "format": "xlsx",
+        "sheet": "Sheet2",
+        "start_row": 3,
+        "fields": [
+          "row_id",
+          "force",
+          "crosshead_displacement",
+          "extensometer_displacement",
+          "time"
+        ],
+        "units": [
+          "1",
+          "N",
+          "mm",
+          "mm",
+          "s"
+        ],
+        "header_checks": [
+          {
+            "row": 2,
+            "column": 0,
+            "value": "Index"
+          },
+          {
+            "row": 2,
+            "column": 1,
+            "value": "Load (N)"
+          },
+          {
+            "row": 2,
+            "column": 2,
+            "value": "Crosshead (mm)"
+          },
+          {
+            "row": 2,
+            "column": 3,
+            "value": "Extensometer (mm)"
+          },
+          {
+            "row": 2,
+            "column": 4,
+            "value": "Time (sec)"
+          }
+        ]
+      }
+    },
+    {
+      "id": "Brass_3",
+      "source": "TensileTestProject.zip",
+      "member": "TensileTestProject/data/dataClass2025/rawData/Brass_3_Crosshead_Extensometer_displacement_S20 50mm Gage Length ASTM E8 Metals Tension (Extensometer-Crosshead) 278- Test Run 1-Test Run 1.xlsx",
+      "sha256": "18a6737f2b6b65ed343ffc96da27d90a60091143ac23b4e61514dbbe68777dbe",
+      "output_name": "Brass_3.xlsx",
+      "role": "intake",
+      "identity_evidence": "Original workbook filename prefix; finite source-file identity only, no batch equivalence assertion",
+      "context": {
+        "material_label": "brass",
+        "alloy_grade": "unknown",
+        "batch": "unknown",
+        "heat_treatment": "unknown",
+        "temperature": "unknown",
+        "prescribed_loading_rate": "unknown",
+        "acquisition_date": "unconfirmed"
+      },
+      "reader": {
+        "format": "xlsx",
+        "sheet": "Sheet2",
+        "start_row": 3,
+        "fields": [
+          "row_id",
+          "force",
+          "crosshead_displacement",
+          "extensometer_displacement",
+          "time"
+        ],
+        "units": [
+          "1",
+          "N",
+          "mm",
+          "mm",
+          "s"
+        ],
+        "header_checks": [
+          {
+            "row": 2,
+            "column": 0,
+            "value": "Index"
+          },
+          {
+            "row": 2,
+            "column": 1,
+            "value": "Load (N)"
+          },
+          {
+            "row": 2,
+            "column": 2,
+            "value": "Crosshead (mm)"
+          },
+          {
+            "row": 2,
+            "column": 3,
+            "value": "Extensometer (mm)"
+          },
+          {
+            "row": 2,
+            "column": 4,
+            "value": "Time (sec)"
+          }
+        ]
+      }
+    }
+  ],
+  "limitations": [
+    "仅三份原始黄铜候选试样工作簿接入；合金牌号、批次、热处理、温度和规定加载速率待补充。",
+    "尚不能证明三份同材料同条件，不进行训练或独立材料评价。",
+    "全部原始记录保留，包括负载负值；不调零、不裁剪、不插值、不代算应力。",
+    "上游JSON日期和部分材料标签来自处理脚本，不能代替原始采集元数据；本入口不执行上游程序。"
+  ]
+}

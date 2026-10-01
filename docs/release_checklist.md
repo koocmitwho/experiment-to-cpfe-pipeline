@@ -37,7 +37,9 @@ For `v0.2.2`, see [the solver fingerprint and release record](verification/2026-
 - [ ] Review `git ls-files --cached --others --exclude-standard`, including
   `docs/superpowers/` and dated verification documents, as a source-tree review.
 - [ ] Review wheel/sdist members separately. `MANIFEST.in` keeps historical
-  plans and dated verification Markdown as repository archives; current guides,
+  plans and historical dated verification Markdown as repository archives;
+  `docs/verification/2026-09-30-public-usability.md` is the explicit current-release
+  report exception in `MANIFEST.in`. Current guides,
   example assets, tests and scripts form the source distribution. Verify these
   exclusions and the attribution in `NOTICE` against the built archives.
 - [ ] Keep raw experiments, ODB/CAE files, checkpoints, private material cards,

@@ -4,7 +4,8 @@ Copyright 2026 koocmitwho and the Experiment-to-CPFE contributors
 Project: https://github.com/koocmitwho/experiment-to-cpfe-pipeline
 
 Project code, documentation and synthetic fixtures are licensed under the
-Apache License, Version 2.0, except for the public tensile case materials
+Apache License, Version 2.0, except for the public tensile case materials and
+source-derived external-case manifests
 identified in THIRD_PARTY_NOTICES.md. Those materials use CC-BY-4.0 and
 include adaptations of the KupferDigital dataset.
 

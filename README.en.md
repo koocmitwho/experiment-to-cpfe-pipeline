@@ -1,5 +1,7 @@
 # Experiment-to-CPFE Pipeline
 
+**v0.3.0 public workflows:** the [DOPAMICS real-case guide](docs/real-case-workflow.en.md) covers intake, specimen grouping, CPU OLS/MLP, separate prediction and readable CSV/evaluation. Source data are CC BY 4.0. Results do not establish model validity. See the [release verification](docs/verification/2026-09-30-public-usability.md) for the publication status. See the [migration audit](docs/public-usability-migration.md).
+
 [中文](README.md)
 
 Python tools for turning experimental and microstructure data into traceable sample packages, then preparing Abaqus inputs, extracting solver results and building machine-learning datasets as needed.
@@ -58,7 +60,7 @@ Use a new output directory for each run. The [data-foundation guide](docs/data-f
 
 HDF5 is the canonical sample package. Export validates the merged experimental and simulated records and saves a stage-specific report. NPZ/PyG derive from the validated HDF5 and retain associated data and provenance; PyG uses explicit graph arrays and feature declarations. `export.formats` specifies enabled formats. See [capabilities and operating conditions](docs/limitations.md) for format and solver requirements.
 
-Dataset construction supports v1 scalar targets and v2 ordered target lists, including train/validation development datasets. `train-surrogate` uses a scalar CPU MLP with v1 target declarations and train/validation/test splits; see the [training guide](docs/training-datasets.md).
+Dataset construction supports v1 scalar targets and v2 ordered target lists. `train-surrogate` accepts v1 scalar declarations only, defaulting to train/validation/test. Version 0.3.0 adds explicit `external_test` mode for train/validation fitting and separate test evaluation. V2 bundles are rejected rather than silently converted; see the [real-case guide](docs/real-case-workflow.en.md).
 
 ## Existing public cases
 

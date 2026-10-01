@@ -1,0 +1,579 @@
+{
+  "version": 1,
+  "case": "dopamics",
+  "doi": "10.5281/zenodo.15343816",
+  "source_page": "https://zenodo.org/records/15343816",
+  "license": "CC-BY-4.0",
+  "purpose": "Retrospective conditional regression of instrument-reported stress from measured laser strain; not future-load prediction",
+  "sources": [
+    {
+      "path": "2025-04-08_Mechanical_data_tensile_test_laser_ALES.zip",
+      "sha256": "210c2474278ad4c05aae85958e3e1eb4ef339b02ebed91d1b72a3b292042ad61"
+    }
+  ],
+  "identity_metadata": {
+    "source": "2025-04-08_Mechanical_data_tensile_test_laser_ALES.zip",
+    "member": "2025-04-08_Mechanical_data_tensile_test_laser_ALES/2025-04-08 Data Palm subset biomechanics_MTS_ALES.csv",
+    "sha256": "493c41b8a8f37f9c51fc4bfeeb8e9ff598451d68238a5a8ef25623514b5e2d1f"
+  },
+  "records": [
+    {
+      "id": "MC87_0370",
+      "trial": 1,
+      "source": "2025-04-08_Mechanical_data_tensile_test_laser_ALES.zip",
+      "member": "2025-04-08_Mechanical_data_tensile_test_laser_ALES/Exécutions d'essai 1 29-05-2024 12 02 59/Exécutions d'essai 1 29-05-2024 12 02 59_DAQ-Contrainte; … - (A intervalle de temps fixe).txt",
+      "sha256": "d78048775a44e1ffb24a39efe8ee122f678be3882abac0348be425d5c14d06f8",
+      "output_name": "trial-001.txt",
+      "role": "train",
+      "identity_evidence": "Original specimen metadata Non-redundant ID (sample ID), matched by Filename to this native test file",
+      "context": {
+        "Site": "MC87",
+        "ID_site": "370",
+        "Non-redundant ID (sample ID)": "MC87_0370",
+        "Genus": "Oenocarpus",
+        "Species": "bataua",
+        "Filename": "execution_essai1",
+        "Weight (g)": "0,0972",
+        "Length (mm)": "100",
+        "Width (mm)": "10,86",
+        "Thickness (mm)": "0,142666667"
+      },
+      "reader": {
+        "format": "txt",
+        "delimiter": "\t",
+        "encoding": "utf-8-sig",
+        "start_row": 9,
+        "fields": [
+          "stress_reported",
+          "force",
+          "time",
+          "traverse_strain",
+          "traverse_displacement",
+          "lx500_extensometer",
+          "lx500_elongation",
+          "laser_strain_percent"
+        ],
+        "units": [
+          "MPa",
+          "N",
+          "s",
+          "%",
+          "mm",
+          "mm",
+          "mm",
+          "%"
+        ],
+        "header_checks": [
+          {
+            "row": 8,
+            "column": 0,
+            "value": "MPa"
+          },
+          {
+            "row": 8,
+            "column": 1,
+            "value": "N"
+          },
+          {
+            "row": 8,
+            "column": 2,
+            "value": "sec"
+          },
+          {
+            "row": 8,
+            "column": 3,
+            "value": "%"
+          },
+          {
+            "row": 8,
+            "column": 4,
+            "value": "mm"
+          },
+          {
+            "row": 8,
+            "column": 5,
+            "value": "mm"
+          },
+          {
+            "row": 8,
+            "column": 6,
+            "value": "mm"
+          },
+          {
+            "row": 8,
+            "column": 7,
+            "value": "%"
+          },
+          {
+            "row": 7,
+            "column": 0,
+            "value": "Contrainte"
+          },
+          {
+            "row": 7,
+            "column": 7,
+            "value": "Déformation_LX500"
+          },
+          {
+            "row": 2,
+            "column": 0,
+            "value": "Essai: Traction_MOE_Dopamics"
+          }
+        ]
+      }
+    },
+    {
+      "id": "MC87_1016",
+      "trial": 3,
+      "source": "2025-04-08_Mechanical_data_tensile_test_laser_ALES.zip",
+      "member": "2025-04-08_Mechanical_data_tensile_test_laser_ALES/Exécutions d'essai 3 29-05-2024 12 03 08/Exécutions d'essai 3 29-05-2024 12 03 08_DAQ-Contrainte; … - (A intervalle de temps fixe).txt",
+      "sha256": "71b07db3ffbeb83a8d95822cec4aef9a29e087be218dd1d89003eb02f0958877",
+      "output_name": "trial-003.txt",
+      "role": "train",
+      "identity_evidence": "Original specimen metadata Non-redundant ID (sample ID), matched by Filename to this native test file",
+      "context": {
+        "Site": "MC87",
+        "ID_site": "1016",
+        "Non-redundant ID (sample ID)": "MC87_1016",
+        "Genus": "Oenocarpus",
+        "Species": "bataua",
+        "Filename": "execution_essai3",
+        "Weight (g)": "0,1071",
+        "Length (mm)": "100",
+        "Width (mm)": "10,62",
+        "Thickness (mm)": "0,169"
+      },
+      "reader": {
+        "format": "txt",
+        "delimiter": "\t",
+        "encoding": "utf-8-sig",
+        "start_row": 9,
+        "fields": [
+          "stress_reported",
+          "force",
+          "time",
+          "traverse_strain",
+          "traverse_displacement",
+          "lx500_extensometer",
+          "lx500_elongation",
+          "laser_strain_percent"
+        ],
+        "units": [
+          "MPa",
+          "N",
+          "s",
+          "%",
+          "mm",
+          "mm",
+          "mm",
+          "%"
+        ],
+        "header_checks": [
+          {
+            "row": 8,
+            "column": 0,
+            "value": "MPa"
+          },
+          {
+            "row": 8,
+            "column": 1,
+            "value": "N"
+          },
+          {
+            "row": 8,
+            "column": 2,
+            "value": "sec"
+          },
+          {
+            "row": 8,
+            "column": 3,
+            "value": "%"
+          },
+          {
+            "row": 8,
+            "column": 4,
+            "value": "mm"
+          },
+          {
+            "row": 8,
+            "column": 5,
+            "value": "mm"
+          },
+          {
+            "row": 8,
+            "column": 6,
+            "value": "mm"
+          },
+          {
+            "row": 8,
+            "column": 7,
+            "value": "%"
+          },
+          {
+            "row": 7,
+            "column": 0,
+            "value": "Contrainte"
+          },
+          {
+            "row": 7,
+            "column": 7,
+            "value": "Déformation_LX500"
+          },
+          {
+            "row": 2,
+            "column": 0,
+            "value": "Essai: Traction_MOE_Dopamics"
+          }
+        ]
+      }
+    },
+    {
+      "id": "MC87_1044",
+      "trial": 4,
+      "source": "2025-04-08_Mechanical_data_tensile_test_laser_ALES.zip",
+      "member": "2025-04-08_Mechanical_data_tensile_test_laser_ALES/Exécutions d'essai 4 29-05-2024 12 03 13/Exécutions d'essai 4 29-05-2024 12 03 13_DAQ-Contrainte; … - (A intervalle de temps fixe).txt",
+      "sha256": "6f65e3e1dcb03fc8314ced4e0935814c9aa04bc04e1ae4b3b53c91e58818dda8",
+      "output_name": "trial-004.txt",
+      "role": "train",
+      "identity_evidence": "Original specimen metadata Non-redundant ID (sample ID), matched by Filename to this native test file",
+      "context": {
+        "Site": "MC87",
+        "ID_site": "1044",
+        "Non-redundant ID (sample ID)": "MC87_1044",
+        "Genus": "Oenocarpus",
+        "Species": "bataua",
+        "Filename": "Execution_essai4",
+        "Weight (g)": "0,0794",
+        "Length (mm)": "100",
+        "Width (mm)": "10,64",
+        "Thickness (mm)": "0,118333333"
+      },
+      "reader": {
+        "format": "txt",
+        "delimiter": "\t",
+        "encoding": "utf-8-sig",
+        "start_row": 9,
+        "fields": [
+          "stress_reported",
+          "force",
+          "time",
+          "traverse_strain",
+          "traverse_displacement",
+          "lx500_extensometer",
+          "lx500_elongation",
+          "laser_strain_percent"
+        ],
+        "units": [
+          "MPa",
+          "N",
+          "s",
+          "%",
+          "mm",
+          "mm",
+          "mm",
+          "%"
+        ],
+        "header_checks": [
+          {
+            "row": 8,
+            "column": 0,
+            "value": "MPa"
+          },
+          {
+            "row": 8,
+            "column": 1,
+            "value": "N"
+          },
+          {
+            "row": 8,
+            "column": 2,
+            "value": "sec"
+          },
+          {
+            "row": 8,
+            "column": 3,
+            "value": "%"
+          },
+          {
+            "row": 8,
+            "column": 4,
+            "value": "mm"
+          },
+          {
+            "row": 8,
+            "column": 5,
+            "value": "mm"
+          },
+          {
+            "row": 8,
+            "column": 6,
+            "value": "mm"
+          },
+          {
+            "row": 8,
+            "column": 7,
+            "value": "%"
+          },
+          {
+            "row": 7,
+            "column": 0,
+            "value": "Contrainte"
+          },
+          {
+            "row": 7,
+            "column": 7,
+            "value": "Déformation_LX500"
+          },
+          {
+            "row": 2,
+            "column": 0,
+            "value": "Essai: Traction_MOE_Dopamics"
+          }
+        ]
+      }
+    },
+    {
+      "id": "MC87_1013",
+      "trial": 10,
+      "source": "2025-04-08_Mechanical_data_tensile_test_laser_ALES.zip",
+      "member": "2025-04-08_Mechanical_data_tensile_test_laser_ALES/Exécutions d'essai 10 29-05-2024 12 03 43/Exécutions d'essai 10 29-05-2024 12 03 43_DAQ-Contrainte; … - (A intervalle de temps fixe).txt",
+      "sha256": "cfc8aab52f179db0e149367f8578bf0bda6b406754feacfc6ab5727c0f4b8d7e",
+      "output_name": "trial-010.txt",
+      "role": "validation",
+      "identity_evidence": "Original specimen metadata Non-redundant ID (sample ID), matched by Filename to this native test file",
+      "context": {
+        "Site": "MC87",
+        "ID_site": "1013",
+        "Non-redundant ID (sample ID)": "MC87_1013",
+        "Genus": "Oenocarpus",
+        "Species": "bataua",
+        "Filename": "execution_essai10",
+        "Weight (g)": "0,0914",
+        "Length (mm)": "100",
+        "Width (mm)": "9,97",
+        "Thickness (mm)": "0,193666667"
+      },
+      "reader": {
+        "format": "txt",
+        "delimiter": "\t",
+        "encoding": "utf-8-sig",
+        "start_row": 9,
+        "fields": [
+          "stress_reported",
+          "force",
+          "time",
+          "traverse_strain",
+          "traverse_displacement",
+          "lx500_extensometer",
+          "lx500_elongation",
+          "laser_strain_percent"
+        ],
+        "units": [
+          "MPa",
+          "N",
+          "s",
+          "%",
+          "mm",
+          "mm",
+          "mm",
+          "%"
+        ],
+        "header_checks": [
+          {
+            "row": 8,
+            "column": 0,
+            "value": "MPa"
+          },
+          {
+            "row": 8,
+            "column": 1,
+            "value": "N"
+          },
+          {
+            "row": 8,
+            "column": 2,
+            "value": "sec"
+          },
+          {
+            "row": 8,
+            "column": 3,
+            "value": "%"
+          },
+          {
+            "row": 8,
+            "column": 4,
+            "value": "mm"
+          },
+          {
+            "row": 8,
+            "column": 5,
+            "value": "mm"
+          },
+          {
+            "row": 8,
+            "column": 6,
+            "value": "mm"
+          },
+          {
+            "row": 8,
+            "column": 7,
+            "value": "%"
+          },
+          {
+            "row": 7,
+            "column": 0,
+            "value": "Contrainte"
+          },
+          {
+            "row": 7,
+            "column": 7,
+            "value": "Déformation_LX500"
+          },
+          {
+            "row": 2,
+            "column": 0,
+            "value": "Essai: Traction_MOE_Dopamics"
+          }
+        ]
+      }
+    },
+    {
+      "id": "MC87_1081",
+      "trial": 11,
+      "source": "2025-04-08_Mechanical_data_tensile_test_laser_ALES.zip",
+      "member": "2025-04-08_Mechanical_data_tensile_test_laser_ALES/Exécutions d'essai 11 29-05-2024 12 03 50/Exécutions d'essai 11 29-05-2024 12 03 50_DAQ-Contrainte; … - (A intervalle de temps fixe).txt",
+      "sha256": "70cad09ca23fd5ca17e4097bb68f3bbff06cf0bd3a399e5dc5b1cdcdc00ff49e",
+      "output_name": "trial-011.txt",
+      "role": "test",
+      "identity_evidence": "Original specimen metadata Non-redundant ID (sample ID), matched by Filename to this native test file",
+      "context": {
+        "Site": "MC87",
+        "ID_site": "1081",
+        "Non-redundant ID (sample ID)": "MC87_1081",
+        "Genus": "Oenocarpus",
+        "Species": "bataua",
+        "Filename": "execution_essai11",
+        "Weight (g)": "0,0864",
+        "Length (mm)": "100",
+        "Width (mm)": "10,75",
+        "Thickness (mm)": "0,173"
+      },
+      "reader": {
+        "format": "txt",
+        "delimiter": "\t",
+        "encoding": "utf-8-sig",
+        "start_row": 9,
+        "fields": [
+          "stress_reported",
+          "force",
+          "time",
+          "traverse_strain",
+          "traverse_displacement",
+          "lx500_extensometer",
+          "lx500_elongation",
+          "laser_strain_percent"
+        ],
+        "units": [
+          "MPa",
+          "N",
+          "s",
+          "%",
+          "mm",
+          "mm",
+          "mm",
+          "%"
+        ],
+        "header_checks": [
+          {
+            "row": 8,
+            "column": 0,
+            "value": "MPa"
+          },
+          {
+            "row": 8,
+            "column": 1,
+            "value": "N"
+          },
+          {
+            "row": 8,
+            "column": 2,
+            "value": "sec"
+          },
+          {
+            "row": 8,
+            "column": 3,
+            "value": "%"
+          },
+          {
+            "row": 8,
+            "column": 4,
+            "value": "mm"
+          },
+          {
+            "row": 8,
+            "column": 5,
+            "value": "mm"
+          },
+          {
+            "row": 8,
+            "column": 6,
+            "value": "mm"
+          },
+          {
+            "row": 8,
+            "column": 7,
+            "value": "%"
+          },
+          {
+            "row": 7,
+            "column": 0,
+            "value": "Contrainte"
+          },
+          {
+            "row": 7,
+            "column": 7,
+            "value": "Déformation_LX500"
+          },
+          {
+            "row": 2,
+            "column": 0,
+            "value": "Essai: Traction_MOE_Dopamics"
+          }
+        ]
+      }
+    }
+  ],
+  "grouping_evidence": "Original sample identities MC87_0370/1016/1044 train, MC87_1013 validation, MC87_1081 test; distinct native files; biological/batch independence beyond recorded identities unknown",
+  "training": {
+    "candidates": [
+      {
+        "id": "linear",
+        "architecture": "linear",
+        "hidden": []
+      },
+      {
+        "id": "mlp",
+        "architecture": "mlp",
+        "hidden": [
+          16,
+          16
+        ]
+      }
+    ],
+    "epochs": 300,
+    "patience": 60,
+    "learning_rate": 0.003,
+    "seed": 17,
+    "device": "cpu",
+    "threads": 1,
+    "max_rows_per_training_or_validation_record": 256,
+    "selection": "minimum validation RMSE; linear wins exact tie"
+  },
+  "limitations": [
+    "仅为测得应变条件下的仪器报告应力回归；不是未来加载预测或一般本构模型。",
+    "固定3/1/1试样划分；同物种同地点不证明生物来源或批次独立。",
+    "公开原始测试响应会在来源检查时读取；不是新的盲测。",
+    "应力为仪器报告量，工程/真实应力约定未独立确认；%应变显式乘0.01转换。",
+    "无已批准科学误差门槛，结果保留legacy_unassessed；仅比较固定两个CPU候选，不按测试结果调整。"
+  ]
+}

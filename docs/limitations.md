@@ -30,10 +30,13 @@ records source units, target units, scale, offset and rationale. Groups and
 physical target-source rows remain within one split. Shared workbooks can use a
 verified original specimen column to declare specimen-level partitions.
 
-`train-surrogate` consumes v1 scalar-target bundles with train, validation and
-test partitions. Its CPU MLP fits normalization on training rows and selects a
-checkpoint using validation MSE. The [training guide](training-datasets.md)
-provides the corresponding configuration and synthetic example.
+`train-surrogate` consumes v1 scalar-target bundles. Default `bundled_test` mode
+requires train/validation/test; explicit `external_test` requires
+exactly train/validation. V2 target lists remain unsupported by this trainer.
+CPU MLP normalization fits training rows and checkpoints use validation MSE;
+OLS coefficients fit training rows only. Independent prediction and
+evaluation support scalar MLP/OLS with explicit names/units and source/identity
+checks. [Real-case guide](real-case-workflow.en.md).
 
 ## Native data interfaces
 
