@@ -50,6 +50,15 @@ the adapter reports are obtained from their publishers for local reading tests.
 
 ## Distribution metadata
 
+The v0.3.1 source distribution adds three AA6061-T651 engineering stress-strain
+curves from Mendeley Data v2 (`10.17632/rd6jm9tyb6.2`) under CC BY 4.0,
+obtained through the pinned Paramaterial example repository. The source-derived
+manifest, recalculated reference values and case figures retain that data
+license. The example preserves both Paramaterial MIT notices separately.
+See [the example source record](../examples/paramaterial_tensile/SOURCES.md)
+for attribution and exact byte/processing scope. No paper full text, private
+research payload or local service record is included.
+
 The Python wheel and sdist declare `License-Expression: Apache-2.0` and ship
 `LICENSE`, `NOTICE` and `THIRD_PARTY_NOTICES.md`. The case files listed under
 CC-BY-4.0 are distributed through the GitHub source tree and its source archives.

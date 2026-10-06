@@ -1,0 +1,28 @@
+{
+  "package_version": "0.3.1",
+  "python_version": "3.12.10",
+  "platform": "Windows",
+  "sample_ids": [
+    "test_ID_055",
+    "test_ID_056",
+    "test_ID_057"
+  ],
+  "rows": 1889,
+  "source_hashes": {
+    "manifest.json": "d922aa8203f35e2392ce63d2c164122678feced0878f704bbbbb29086df98ff5",
+    "reference_metrics.json": "3353997f8d61efc940c7c8ef36e328b7ef70116f12196523dce1849aeaf2767c",
+    "test_ID_055.csv": "35ed1f7b1e0406bba3ba903087e186097d60229f4a533b07188515845fb162b5",
+    "test_ID_056.csv": "4e381c1c478cb093788a5d7df9bf51d7d23a299b9fb2a7aa18351371f6ee24e1",
+    "test_ID_057.csv": "ab08b8e87472facdbb842b1dd7ed3567b50089269dc33655023944b495da50bb"
+  },
+  "processing_sha256": "5c991eebb20968e77d93522c4be50d4fa9812de8bf0d430471d46fadbd4e6d22",
+  "public_normalization_sha256": "ffc15906cbf45fd1df212268d4cdbc21fc59f91cd104ba08d0d801c5657e2b94",
+  "direct_and_readback_metrics_exact": true,
+  "independent_readback_passed": true,
+  "data_license": "CC-BY-4.0",
+  "dataset_doi": "10.17632/rd6jm9tyb6.2",
+  "claim_scope": "Transfer integrity and calculation reproduction on these fixed three specimens",
+  "training_executed": false,
+  "solver_executed": false,
+  "human_time_savings_measured": false
+}

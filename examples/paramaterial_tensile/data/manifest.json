@@ -1,0 +1,81 @@
+{
+  "schema_version": 1,
+  "dataset": {
+    "doi": "10.17632/rd6jm9tyb6.2",
+    "url": "https://data.mendeley.com/datasets/rd6jm9tyb6/2",
+    "license": "CC-BY-4.0",
+    "title": "Stress-strain data for aluminum 6061-T651 from 9 lots at 6 temperatures under uniaxial and plain strain tension",
+    "contributors": [
+      "Michael Shields",
+      "B.S. Aakash",
+      "JohnPatrick Connors"
+    ]
+  },
+  "examples_commit": "77357000ebe4939fb540a0ef1e1071a14d3728e9",
+  "paramaterial": {
+    "version": "0.1.0",
+    "processing_sha256": "5c991eebb20968e77d93522c4be50d4fa9812de8bf0d430471d46fadbd4e6d22"
+  },
+  "specimens": [
+    {
+      "sample_id": "test_ID_055",
+      "filename": "test_ID_055.csv",
+      "sha256": "35ed1f7b1e0406bba3ba903087e186097d60229f4a533b07188515845fb162b5",
+      "rows": 614,
+      "temperature_C": 20,
+      "lot": "A",
+      "specimen_number": 1,
+      "original_filename": "T_020_A_1_001_022_03.csv",
+      "upstream_url": "https://raw.githubusercontent.com/dan-slater/paramaterial-examples/77357000ebe4939fb540a0ef1e1071a14d3728e9/examples/dan-msc-basic-usage/data/01%20prepared%20data/test_ID_055.csv",
+      "units": {
+        "Strain": "1",
+        "Stress_MPa": "MPa"
+      },
+      "screening": {
+        "rejected": false,
+        "source_url": "https://raw.githubusercontent.com/dan-slater/paramaterial-examples/77357000ebe4939fb540a0ef1e1071a14d3728e9/examples/dan-msc-basic-usage/info/screening-marked.pdf",
+        "source_sha256": "df48554105ade7241295fab2788d0e5a7ebf34c3b79f5cf444342b9aacbabecc"
+      }
+    },
+    {
+      "sample_id": "test_ID_056",
+      "filename": "test_ID_056.csv",
+      "sha256": "4e381c1c478cb093788a5d7df9bf51d7d23a299b9fb2a7aa18351371f6ee24e1",
+      "rows": 645,
+      "temperature_C": 20,
+      "lot": "A",
+      "specimen_number": 2,
+      "original_filename": "T_020_A_2_002_024_04.csv",
+      "upstream_url": "https://raw.githubusercontent.com/dan-slater/paramaterial-examples/77357000ebe4939fb540a0ef1e1071a14d3728e9/examples/dan-msc-basic-usage/data/01%20prepared%20data/test_ID_056.csv",
+      "units": {
+        "Strain": "1",
+        "Stress_MPa": "MPa"
+      },
+      "screening": {
+        "rejected": false,
+        "source_url": "https://raw.githubusercontent.com/dan-slater/paramaterial-examples/77357000ebe4939fb540a0ef1e1071a14d3728e9/examples/dan-msc-basic-usage/info/screening-marked.pdf",
+        "source_sha256": "df48554105ade7241295fab2788d0e5a7ebf34c3b79f5cf444342b9aacbabecc"
+      }
+    },
+    {
+      "sample_id": "test_ID_057",
+      "filename": "test_ID_057.csv",
+      "sha256": "ab08b8e87472facdbb842b1dd7ed3567b50089269dc33655023944b495da50bb",
+      "rows": 630,
+      "temperature_C": 20,
+      "lot": "A",
+      "specimen_number": 3,
+      "original_filename": "T_020_A_3_003_025_05.csv",
+      "upstream_url": "https://raw.githubusercontent.com/dan-slater/paramaterial-examples/77357000ebe4939fb540a0ef1e1071a14d3728e9/examples/dan-msc-basic-usage/data/01%20prepared%20data/test_ID_057.csv",
+      "units": {
+        "Strain": "1",
+        "Stress_MPa": "MPa"
+      },
+      "screening": {
+        "rejected": false,
+        "source_url": "https://raw.githubusercontent.com/dan-slater/paramaterial-examples/77357000ebe4939fb540a0ef1e1071a14d3728e9/examples/dan-msc-basic-usage/info/screening-marked.pdf",
+        "source_sha256": "df48554105ade7241295fab2788d0e5a7ebf34c3b79f5cf444342b9aacbabecc"
+      }
+    }
+  ]
+}

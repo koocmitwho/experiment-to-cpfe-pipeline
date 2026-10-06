@@ -6,3 +6,6 @@
 *.npy binary
 *.npz binary
 *.odb binary
+
+# Preserve the exact upstream bytes used by the published source hashes.
+examples/paramaterial_tensile/data/*.csv -text
