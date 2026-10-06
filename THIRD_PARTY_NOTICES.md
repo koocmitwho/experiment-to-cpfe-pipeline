@@ -105,6 +105,31 @@ input files obtained separately. Keep the upstream license with those files.
 The native-adapter report describes reading tests on other datasets. Obtain
 those files from their publishers under the source terms.
 
+## Paramaterial tensile example
+
+The method sequence in `examples/paramaterial_tensile/` adapts Dan Slater's
+Paramaterial examples at commit `77357000ebe4939fb540a0ef1e1071a14d3728e9`
+(MIT, copyright 2023 dan-slater) and calls Paramaterial 0.1.0 (MIT, copyright
+2022 dan-slater). Both notices are preserved in the example's `licenses/`
+directory. Original project integration code uses Apache-2.0.
+
+The three engineering stress-strain CSV files originate from Michael Shields,
+B.S. Aakash, and JohnPatrick Connors (2019), Mendeley Data v2,
+DOI https://doi.org/10.17632/rd6jm9tyb6.2, under CC BY 4.0:
+https://creativecommons.org/licenses/by/4.0/.
+
+The three CSV inputs are copied without byte changes from the pinned
+Paramaterial examples; their prepared filenames were assigned upstream.
+The source-derived manifest and independently recalculated reference values
+in `examples/paramaterial_tensile/data/`, and any case result figures and
+tables, retain CC BY 4.0. Generated strain-zero corrections, metrics and
+figures are derivatives. The software license does not replace the data
+license. The source authors do not endorse this project.
+
+See `examples/paramaterial_tensile/SOURCES.md` for source hashes,
+transformation details and numerical-reference limits. The paper full text
+is not redistributed; its license differs from the dataset license.
+
 ## Python dependencies and external tools
 
 Pip installs the dependencies declared in `pyproject.toml`, each with its own

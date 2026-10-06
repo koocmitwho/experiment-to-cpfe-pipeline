@@ -2,7 +2,7 @@
 
 简体中文 | [English](README.en.md)
 
-当前公开版本：**v0.3.0**。[下载与安装包](https://github.com/koocmitwho/experiment-to-cpfe-pipeline/releases/tag/v0.3.0) · [版本变化](CHANGELOG.md)
+当前公开版本：**v0.3.1**。[下载与安装包](https://github.com/koocmitwho/experiment-to-cpfe-pipeline/releases/tag/v0.3.1) · [版本变化](CHANGELOG.md)
 
 **把实验与微结构数据整理成可追溯的样本，再按需要建集、训练、独立预测和评价。**
 
@@ -31,14 +31,14 @@
 
 需要 **Python 3.12 或更新版本**。基础依赖为 NumPy、pandas、h5py、Pydantic 和 PyYAML；pip 会按 [pyproject.toml](pyproject.toml) 安装。
 
-公开源码与包可以独立使用，不需要私有代码、私有材料卡、训练权重或研究数据。基础示例不需要 PyTorch、PyG、GPU 或 Abaqus。真实案例的公开原始数据需要另外下载。
+公开源码与包可以独立使用，不需要私有代码、私有材料卡、训练权重或研究数据。基础示例不需要 PyTorch、PyG、GPU 或 Abaqus。大部分真实案例的数据需要另外下载；Paramaterial 小案例附带三条已获再分发许可的工程应力—应变曲线。
 
 ### 推荐：获取带示例的固定版本源码
 
 以下命令在你选择的工作目录执行；如果目标目录已存在，先检查其中的版本和本地修改。
 
 ```text
-git clone --branch v0.3.0 --depth 1 https://github.com/koocmitwho/experiment-to-cpfe-pipeline.git
+git clone --branch v0.3.1 --depth 1 https://github.com/koocmitwho/experiment-to-cpfe-pipeline.git
 cd experiment-to-cpfe-pipeline
 python -m venv .venv
 ```
@@ -57,9 +57,9 @@ Linux/macOS shell：
 .venv/bin/python -m experiment_to_cpfe.cli --version
 ```
 
-应显示 `pipeline 0.3.0`。这里直接使用虚拟环境中的解释器，不要求修改 PowerShell 执行策略。后续命令从仓库根目录运行，默认给出 Windows 写法；Linux/macOS 将 `.\.venv\Scripts\python.exe` 换成 `.venv/bin/python`。
+应显示 `pipeline 0.3.1`。这里直接使用虚拟环境中的解释器，不要求修改 PowerShell 执行策略。后续命令从仓库根目录运行，默认给出 Windows 写法；Linux/macOS 将 `.\.venv\Scripts\python.exe` 换成 `.venv/bin/python`。
 
-没有 Git 时，也可下载 [Release 的源码包](https://github.com/koocmitwho/experiment-to-cpfe-pipeline/releases/download/v0.3.0/experiment_to_cpfe-0.3.0.tar.gz)，解压后在含 `pyproject.toml` 的目录安装。
+没有 Git 时，也可下载 [Release 的源码包](https://github.com/koocmitwho/experiment-to-cpfe-pipeline/releases/download/v0.3.1/experiment_to_cpfe-0.3.1.tar.gz)，解压后在含 `pyproject.toml` 的目录安装。
 
 ### 只需要库和 CLI：安装 wheel
 
@@ -67,11 +67,11 @@ Linux/macOS shell：
 
 ```powershell
 python -m venv .venv
-.\.venv\Scripts\python.exe -m pip install "https://github.com/koocmitwho/experiment-to-cpfe-pipeline/releases/download/v0.3.0/experiment_to_cpfe-0.3.0-py3-none-any.whl"
+.\.venv\Scripts\python.exe -m pip install "https://github.com/koocmitwho/experiment-to-cpfe-pipeline/releases/download/v0.3.1/experiment_to_cpfe-0.3.1-py3-none-any.whl"
 .\.venv\Scripts\python.exe -m experiment_to_cpfe.cli --help
 ```
 
-wheel 提供库和 CLI；示例脚本、配置和固定案例清单位于源码仓库及源码包。安装 wheel 后想运行下文示例，还需取得对应 v0.3.0 源码中的 `examples/`。本版本通过 GitHub 分发，没有发布到 PyPI。
+wheel 提供库和 CLI；示例脚本、配置和固定案例清单位于源码仓库及源码包。安装 wheel 后想运行下文示例，还需取得对应 v0.3.1 源码中的 `examples/`。本版本通过 GitHub 分发，没有发布到 PyPI。
 
 ### 按用途添加依赖
 
@@ -124,6 +124,17 @@ PyTorch 的平台选择见 [官方安装页面](https://pytorch.org/get-started/
 
 每次选择尚不存在的输出目录，例如下一次用 `runs/data-foundation-002`。修改配置后保留原结果，另开目录。逐步命令和字段见 [数据基础层指南](docs/data-foundation.md) 与 [示例说明](examples/data_foundation/README.md)。
 
+## 小型真实案例：三个拉伸试样的处理与读回
+
+[Paramaterial 三试样案例](examples/paramaterial_tensile/README.md) 使用附带的 AA6061-T651、20°C、A 批次公开曲线，共 1,889 行。它按作者方法计算 UTS、E 和 0.2% proof，再经公开包 HDF5 规范化、读回和独立核对，输出曲线及指标对照表。案例使用单列的 Python 3.12 依赖，不需要训练或求解器。
+
+```powershell
+.\.venv\Scripts\python.exe -m pip install -r examples/paramaterial_tensile/requirements.txt
+.\.venv\Scripts\python.exe -B examples/paramaterial_tensile/workflow.py --run-dir runs/paramaterial-001
+```
+
+输入为作者公开的工程应力—应变曲线，数据采用 CC BY 4.0；[来源与处理口径](examples/paramaterial_tensile/SOURCES.md)随例保留。这一小任务检验处理与流转一致性，不代表材料标定或跨材料预测。
+
 ## 接着运行：合成数据上的标量训练
 
 安装上面的 CPU 训练依赖后，运行表布局示例：
@@ -140,7 +151,7 @@ PyTorch 的平台选择见 [官方安装页面](https://pytorch.org/get-started/
 
 ### 数据划分和版本边界
 
-| 操作 | v0.3.0 支持范围 |
+| 操作 | v0.3.1 支持范围 |
 |---|---|
 | `build-training-dataset` | v1 单个 `target`；v2 有序 `targets` 列表；必须有 train、validation，test 可选 |
 | `train-surrogate` 默认模式 | v1 标量目标；要求 train、validation、test |
@@ -230,6 +241,8 @@ HDF5 是规范样本格式。普通样本 NPZ 保留样本数据；训练 NPZ �
 
 ## 当前验证范围与局限
 
+v0.3.1 新增 Paramaterial 小案例；其依赖、测试与运行结果按[案例说明](examples/paramaterial_tensile/README.md)单列。以下 v0.3.0 数字保留为历史发布证据。
+
 v0.3.0 发布审核验证了公开包的独立安装、源码示例、CPU 训练/推理/评价和包内容。Windows 隔离环境最终复核为 **831 通过、1 跳过**，唯一跳过项为未启用的真实 Abaqus。标签 [CI](https://github.com/koocmitwho/experiment-to-cpfe-pipeline/actions/runs/36811952722) 的 Ubuntu/Windows 基础流程、CPU training、CPU ML 四项均通过；基础流程还检查了 wheel 安装，CPU ML 包含实际 PyG 序列化读回。
 
 这些结果没有覆盖或证明：
@@ -289,7 +302,8 @@ Linux 用 `export EXP2CPFE_TEST_PROFILE=ml` 设置该模式。wheel 安装检查
 项目代码、文档和合成夹具使用 [Apache-2.0](LICENSE)。数据与来源派生材料遵循各自许可证：
 
 - KupferDigital 指定案例材料，以及 DOPAMICS、FAIR Train、PCL 来源派生清单：CC BY 4.0。
+- Paramaterial 三条公开工程曲线、来源派生清单与参考计算：CC BY 4.0；上游方法与示例保留 MIT 声明。
 - 另外获取的 GH4169 原始数据：CC BY-NC 3.0；项目代码的许可证不改变其非商业条款。
 - 其他可选来源按各自清单和上游条件使用。
 
-作者、原始记录、修改说明和适用范围见 [NOTICE](NOTICE)、[第三方声明](THIRD_PARTY_NOTICES.md) 与 [许可记录](docs/licensing.md)。原始数据、训练权重和求解结果由使用者保存在本地工作目录，不随公开 Python 包提供。
+作者、原始记录、修改说明和适用范围见 [NOTICE](NOTICE)、[第三方声明](THIRD_PARTY_NOTICES.md) 与 [许可记录](docs/licensing.md)。源码包附带三条已明确归属的 Paramaterial 案例曲线；其他原始档案、训练权重和求解结果由使用者保存在本地工作目录。

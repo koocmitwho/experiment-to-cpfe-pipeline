@@ -2,7 +2,7 @@
 
 [简体中文](README.md) | English
 
-Current public version: **v0.3.0**. [Downloads and packages](https://github.com/koocmitwho/experiment-to-cpfe-pipeline/releases/tag/v0.3.0) · [Changelog](CHANGELOG.md)
+Current public version: **v0.3.1**. [Downloads and packages](https://github.com/koocmitwho/experiment-to-cpfe-pipeline/releases/tag/v0.3.1) · [Changelog](CHANGELOG.md)
 
 **Turn experimental and microstructure data into traceable samples, then build datasets, train, predict independently and evaluate as needed.**
 
@@ -31,14 +31,14 @@ The project does not automatically interpret arbitrary instrument formats, infer
 
 Use **Python 3.12 or newer**. Base dependencies are NumPy, pandas, h5py, Pydantic and PyYAML; pip installs them according to [pyproject.toml](pyproject.toml).
 
-The public source and packages work independently of private code, private material cards, trained weights or research data. The base example needs no PyTorch, PyG, GPU or Abaqus. Real-case public source data must be downloaded separately.
+The public source and packages work independently of private code, private material cards, trained weights or research data. The base example needs no PyTorch, PyG, GPU or Abaqus. Most real-case data must be downloaded separately; the small Paramaterial case includes three engineering stress-strain curves with confirmed redistribution rights.
 
 ### Recommended: get the tagged source with examples
 
 Run these commands in a directory of your choice. If the destination already exists, inspect its version and local changes first.
 
 ```text
-git clone --branch v0.3.0 --depth 1 https://github.com/koocmitwho/experiment-to-cpfe-pipeline.git
+git clone --branch v0.3.1 --depth 1 https://github.com/koocmitwho/experiment-to-cpfe-pipeline.git
 cd experiment-to-cpfe-pipeline
 python -m venv .venv
 ```
@@ -57,9 +57,9 @@ Linux/macOS shell:
 .venv/bin/python -m experiment_to_cpfe.cli --version
 ```
 
-The version command should print `pipeline 0.3.0`. These commands use the environment's interpreter directly; no PowerShell execution-policy change is required. Run subsequent commands from the repository root. They use Windows syntax; on Linux/macOS, replace `.\.venv\Scripts\python.exe` with `.venv/bin/python`.
+The version command should print `pipeline 0.3.1`. These commands use the environment's interpreter directly; no PowerShell execution-policy change is required. Run subsequent commands from the repository root. They use Windows syntax; on Linux/macOS, replace `.\.venv\Scripts\python.exe` with `.venv/bin/python`.
 
-Without Git, download the [Release source distribution](https://github.com/koocmitwho/experiment-to-cpfe-pipeline/releases/download/v0.3.0/experiment_to_cpfe-0.3.0.tar.gz), extract it, and install from the directory containing `pyproject.toml`.
+Without Git, download the [Release source distribution](https://github.com/koocmitwho/experiment-to-cpfe-pipeline/releases/download/v0.3.1/experiment_to_cpfe-0.3.1.tar.gz), extract it, and install from the directory containing `pyproject.toml`.
 
 ### Library and CLI only: install the wheel
 
@@ -67,11 +67,11 @@ Install in a new or existing isolated virtual environment. For example, on Windo
 
 ```powershell
 python -m venv .venv
-.\.venv\Scripts\python.exe -m pip install "https://github.com/koocmitwho/experiment-to-cpfe-pipeline/releases/download/v0.3.0/experiment_to_cpfe-0.3.0-py3-none-any.whl"
+.\.venv\Scripts\python.exe -m pip install "https://github.com/koocmitwho/experiment-to-cpfe-pipeline/releases/download/v0.3.1/experiment_to_cpfe-0.3.1-py3-none-any.whl"
 .\.venv\Scripts\python.exe -m experiment_to_cpfe.cli --help
 ```
 
-The wheel provides the library and CLI. Example scripts, configurations and fixed case manifests are in the source repository and source distribution. To run the examples below after installing the wheel, also obtain `examples/` from the matching v0.3.0 source. This version is distributed through GitHub and has no PyPI publication.
+The wheel provides the library and CLI. Example scripts, configurations and fixed case manifests are in the source repository and source distribution. To run the examples below after installing the wheel, also obtain `examples/` from the matching v0.3.1 source. This version is distributed through GitHub and has no PyPI publication.
 
 ### Add dependencies for the work you need
 
@@ -124,6 +124,17 @@ Main outputs under `runs/data-foundation-001/` are:
 
 Choose a directory that does not yet exist each time, such as `runs/data-foundation-002` for the next run. After changing configuration, preserve earlier results and use a new directory. Individual commands and fields are described in the [data-foundation guide](docs/data-foundation.md) and [example README](examples/data_foundation/README.md).
 
+## Small real-data case: three tensile specimens and readback
+
+The [Paramaterial example](examples/paramaterial_tensile/README.en.md) uses three bundled public AA6061-T651 curves from lot A at 20 C, totaling 1,889 rows. It computes UTS, E and 0.2% proof using the author's method, passes the original data through the public package's HDF5 normalization, and compares the readback and independent checks. It uses separate Python 3.12 example dependencies; no training or solver is needed.
+
+```powershell
+.\.venv\Scripts\python.exe -m pip install -r examples/paramaterial_tensile/requirements.txt
+.\.venv\Scripts\python.exe -B examples/paramaterial_tensile/workflow.py --run-dir runs/paramaterial-001
+```
+
+Inputs are author-provided engineering stress-strain curves under CC BY 4.0. [Sources and processing scope](examples/paramaterial_tensile/SOURCES.md) accompany the example. This checks processing and transfer consistency, not material calibration or cross-material prediction.
+
 ## Next run: scalar training on synthetic data
 
 After installing the CPU training dependencies above, run the table-layout example:
@@ -140,7 +151,7 @@ Open `runs/table-model-001/training.json` for the actual settings, normalization
 
 ### Splits and version boundaries
 
-| Operation | v0.3.0 support |
+| Operation | v0.3.1 support |
 |---|---|
 | `build-training-dataset` | v1 single `target`; v2 ordered `targets` list; train and validation required, test optional |
 | Default `train-surrogate` mode | v1 scalar target; train, validation and test required |
@@ -230,6 +241,8 @@ Current Abaqus checks cover supported three-dimensional solid elements, one mate
 
 ## Current verification scope and limitations
 
+v0.3.1 adds the Paramaterial case, with dependencies, tests and results documented in its [case guide](examples/paramaterial_tensile/README.en.md). The v0.3.0 numbers below remain historical release evidence.
+
 The v0.3.0 release audit checked independent public-package installation, source examples, CPU training/inference/evaluation and package contents. Final isolated Windows verification had **831 passed and 1 skipped**, with the only skip being real Abaqus, which was not enabled. The tag [CI](https://github.com/koocmitwho/experiment-to-cpfe-pipeline/actions/runs/36811952722) passed all four jobs: Ubuntu/Windows base workflows, CPU training and CPU ML. Base jobs also checked wheel installation; CPU ML included actual PyG serialization/readback.
 
 Those results do not cover or establish:
@@ -290,6 +303,7 @@ Project code, documentation and synthetic fixtures use [Apache-2.0](LICENSE). Da
 
 - Designated KupferDigital case materials and source-derived DOPAMICS, FAIR Train and PCL manifests: CC BY 4.0.
 - Separately obtained GH4169 raw data: CC BY-NC 3.0. The project-code license does not change its noncommercial terms.
+- The three Paramaterial engineering curves, source-derived manifest and reference calculations: CC BY 4.0; upstream method/example MIT notices are retained separately.
 - Other optional sources: their respective manifests and upstream conditions.
 
-See [NOTICE](NOTICE), [third-party notices](THIRD_PARTY_NOTICES.md) and the [license record](docs/licensing.md) for authors, original records, processing changes and scope. Users keep raw data, trained weights and solver results in their own local working directories; these are not supplied with the public Python package.
+See [NOTICE](NOTICE), [third-party notices](THIRD_PARTY_NOTICES.md) and the [license record](docs/licensing.md) for authors, original records, processing changes and scope. The source distribution includes the three explicitly attributed Paramaterial case curves. Other original archives, trained weights and solver results remain in users' local working directories.

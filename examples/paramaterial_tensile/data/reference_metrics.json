@@ -1,0 +1,23 @@
+{
+  "kind": "independent_recalculation_not_author_truth",
+  "specimens": [
+    {
+      "sample_id": "test_ID_055",
+      "UTS_MPa": 277.080919182671,
+      "E_MPa": 63702.73562050127,
+      "Rp02_MPa": 251.9659672796517
+    },
+    {
+      "sample_id": "test_ID_056",
+      "UTS_MPa": 277.834142238505,
+      "E_MPa": 54345.38412413871,
+      "Rp02_MPa": 252.88748700843635
+    },
+    {
+      "sample_id": "test_ID_057",
+      "UTS_MPa": 280.209188306993,
+      "E_MPa": 65257.0047943025,
+      "Rp02_MPa": 254.02447228513756
+    }
+  ]
+}

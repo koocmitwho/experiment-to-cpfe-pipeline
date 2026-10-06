@@ -9,6 +9,7 @@ For `v0.2.0`, see [the data-foundation record](verification/2026-09-26-data-foun
 and [the validation/CI repair record](verification/2026-09-27-validation-ci-hardening.md).
 For `v0.2.1`, see [the release validation record](verification/2026-09-27-v0.2.1-release.md).
 For `v0.2.2`, see [the solver fingerprint and release record](verification/2026-09-27-v0.2.2-release.md).
+For `v0.3.1`, see [the Paramaterial case record](verification/2026-10-07-paramaterial-release.md).
 
 ## Tests and packaging
 

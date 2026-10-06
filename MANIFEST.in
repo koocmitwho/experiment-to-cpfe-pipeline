@@ -5,10 +5,12 @@ recursive-include docs *.md *.json *.png
 # Dated reports are preserved as repository history; packages ship current guides.
 recursive-exclude docs/verification *.md
 include docs/verification/2026-09-30-public-usability.md
+include docs/verification/2026-10-07-paramaterial-release.md
 include docs/verification/assets/README
 prune docs/superpowers
 prune docs/research
 recursive-include examples *.py *.md *.json *.yaml *.csv *.txt *.inp
+recursive-include examples/paramaterial_tensile *.png
 recursive-include tests *.py *.csv *.json
 recursive-include scripts *.py
 include .github/workflows/tests.yml

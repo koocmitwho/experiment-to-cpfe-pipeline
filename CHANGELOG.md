@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.3.1 — 2026-10-07
+
+- Add a portable Paramaterial 0.1.0 example for three AA6061-T651 tensile
+  specimens, with explicitly attributed CC BY 4.0 input curves and pinned
+  specimen, unit, source and screening records.
+- Run the original tensile processing through the installed public package,
+  compare direct CSV and HDF5-readback results, and independently verify
+  values, row identities, units and source bindings in a new process.
+- Keep the example's plotting and processing dependencies separate from the
+  base package, and exercise the example on Windows and Linux.
+- Document the fixed-case results and the scope of an earlier independent
+  agent usability check; no human time-saving or scientific generalization
+  claim is made. No private solver/model code or local service logs are added.
+
 ## 0.3.0 — 2026-10-01
 
 - Add scalar OLS and explicit external-test training with train-only fitting

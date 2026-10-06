@@ -45,6 +45,26 @@ jobs:
       - name: Build collections and exercise real optimization and checkpoint readback
         run: python -m pytest -q -rs --strict-markers tests/unit/test_training_dataset.py tests/unit/test_training_specimens.py tests/unit/test_gh4169_example.py tests/unit/test_surrogate_training.py tests/integration/test_training_dataset_pipeline.py
 
+  paramaterial-case:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - run: python -m pip install --upgrade pip
+      - run: python -m pip install build pytest
+      - run: python -m pip install -r examples/paramaterial_tensile/requirements.txt
+      - run: python -m build --wheel
+      - name: Install the public wheel for the real case
+        run: python -c "import glob, subprocess, sys; subprocess.check_call([sys.executable, '-m', 'pip', 'install', glob.glob('dist/*.whl')[0]])"
+      - name: Verify the example and its installed-package workflow
+        run: python -m pytest -q examples/paramaterial_tensile/tests
+
   cpu-ml:
     runs-on: ubuntu-latest
     env:

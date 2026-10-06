@@ -1,0 +1,11 @@
+# Case-specific Python 3.12 numerical/plotting dependencies.
+# Install the public experiment-to-cpfe package separately as documented.
+# This pins the numerical stack used for reproduction, not every transitive dependency.
+paramaterial==0.1.0
+numpy==1.26.4
+pandas==2.2.3
+scipy==1.14.1
+matplotlib==3.7.5
+seaborn==0.13.2
+h5py==3.12.1
+openpyxl==3.1.5

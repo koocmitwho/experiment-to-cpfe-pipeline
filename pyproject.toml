@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "experiment-to-cpfe"
-version = "0.3.0"
+version = "0.3.1"
 description = "A provenance-preserving experiment-to-multiphysics data pipeline."
 readme = "README.md"
 requires-python = ">=3.12"
@@ -35,9 +35,9 @@ ml = [
 
 [project.urls]
 Repository = "https://github.com/koocmitwho/experiment-to-cpfe-pipeline"
-Documentation = "https://github.com/koocmitwho/experiment-to-cpfe-pipeline/blob/v0.3.0/README.md"
+Documentation = "https://github.com/koocmitwho/experiment-to-cpfe-pipeline/blob/v0.3.1/README.md"
 Issues = "https://github.com/koocmitwho/experiment-to-cpfe-pipeline/issues"
-Changelog = "https://github.com/koocmitwho/experiment-to-cpfe-pipeline/blob/v0.3.0/CHANGELOG.md"
+Changelog = "https://github.com/koocmitwho/experiment-to-cpfe-pipeline/blob/v0.3.1/CHANGELOG.md"
 Releases = "https://github.com/koocmitwho/experiment-to-cpfe-pipeline/releases"
 
 [project.scripts]
