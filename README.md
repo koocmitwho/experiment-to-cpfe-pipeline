@@ -2,7 +2,7 @@
 
 简体中文 | [English](README.en.md)
 
-当前公开版本：**v0.3.1**。[下载与安装包](https://github.com/koocmitwho/experiment-to-cpfe-pipeline/releases/tag/v0.3.1) · [版本变化](CHANGELOG.md)
+当前公开版本：**v0.4.0**。[下载与安装包](https://github.com/koocmitwho/experiment-to-cpfe-pipeline/releases/tag/v0.4.0) · [版本变化](CHANGELOG.md)
 
 **把实验与微结构数据整理成可追溯的样本，再按需要建集、训练、独立预测和评价。**
 
@@ -24,6 +24,7 @@
 - **运行标量回归。** 使用 CPU OLS（普通最小二乘线性回归）或 MLP（多层感知机），只用训练记录拟合预处理和模型，用验证记录选模型。
 - **分开预测与评价。** 用冻结检查点和输入数据生成预测，再用单独的真值数据评价，交付可读 CSV、中文摘要和机器可读记录。
 - **衔接受支持的求解流程。** 检查和准备 Abaqus INP，记录 datacheck、analysis 与 ODB 提取阶段，导出 HDF5/NPZ，或按显式图声明导出 PyG。
+- **管理固定案例任务。** 在 Windows 上通过 Python、JSON CLI、可选 MCP 或本地中文界面运行固定 Paramaterial 案例，保留任务、重试记录、预算和分层验收。
 
 项目不会自动解释任意仪器格式、推断缺失的物理事实，或从任意实验自动建立晶体塑性本构模型。图像和厂商专有文件可能需要先由其他工具转成这里支持的数值格式。Abaqus 执行需要使用者自己的软件、模型和必要的编译工具链。
 
@@ -38,7 +39,7 @@
 以下命令在你选择的工作目录执行；如果目标目录已存在，先检查其中的版本和本地修改。
 
 ```text
-git clone --branch v0.3.1 --depth 1 https://github.com/koocmitwho/experiment-to-cpfe-pipeline.git
+git clone --branch v0.4.0 --depth 1 https://github.com/koocmitwho/experiment-to-cpfe-pipeline.git
 cd experiment-to-cpfe-pipeline
 python -m venv .venv
 ```
@@ -57,21 +58,21 @@ Linux/macOS shell：
 .venv/bin/python -m experiment_to_cpfe.cli --version
 ```
 
-应显示 `pipeline 0.3.1`。这里直接使用虚拟环境中的解释器，不要求修改 PowerShell 执行策略。后续命令从仓库根目录运行，默认给出 Windows 写法；Linux/macOS 将 `.\.venv\Scripts\python.exe` 换成 `.venv/bin/python`。
+应显示 `pipeline 0.4.0`。这里直接使用虚拟环境中的解释器，不要求修改 PowerShell 执行策略。后续命令从仓库根目录运行，默认给出 Windows 写法；原有跨平台流程在 Linux/macOS 将 `.\.venv\Scripts\python.exe` 换成 `.venv/bin/python`。新增 harness 的任务执行当前仅支持 Windows。
 
-没有 Git 时，也可下载 [Release 的源码包](https://github.com/koocmitwho/experiment-to-cpfe-pipeline/releases/download/v0.3.1/experiment_to_cpfe-0.3.1.tar.gz)，解压后在含 `pyproject.toml` 的目录安装。
+没有 Git 时，也可下载 [Release 的源码包](https://github.com/koocmitwho/experiment-to-cpfe-pipeline/releases/download/v0.4.0/experiment_to_cpfe-0.4.0.tar.gz)，解压后在含 `pyproject.toml` 的目录安装。
 
-### 只需要库和 CLI：安装 wheel
+### 安装库、CLI 和本地界面：使用 wheel
 
 在新建或已有的独立虚拟环境中安装，例如 Windows：
 
 ```powershell
 python -m venv .venv
-.\.venv\Scripts\python.exe -m pip install "https://github.com/koocmitwho/experiment-to-cpfe-pipeline/releases/download/v0.3.1/experiment_to_cpfe-0.3.1-py3-none-any.whl"
+.\.venv\Scripts\python.exe -m pip install "https://github.com/koocmitwho/experiment-to-cpfe-pipeline/releases/download/v0.4.0/experiment_to_cpfe-0.4.0-py3-none-any.whl"
 .\.venv\Scripts\python.exe -m experiment_to_cpfe.cli --help
 ```
 
-wheel 提供库和 CLI；示例脚本、配置和固定案例清单位于源码仓库及源码包。安装 wheel 后想运行下文示例，还需取得对应 v0.3.1 源码中的 `examples/`。本版本通过 GitHub 分发，没有发布到 PyPI。
+wheel 提供库、CLI、harness 入口和中文界面静态资源；示例脚本、配置和固定案例清单位于源码仓库及源码包。安装 wheel 后运行下文示例或初始化 harness 工作区，仍需取得对应 v0.4.0 源码中的 `examples/` 并安装案例依赖。MCP 还需单独安装可选依赖。本版本通过 GitHub 分发，没有发布到 PyPI。
 
 ### 按用途添加依赖
 
@@ -82,6 +83,7 @@ wheel 提供库和 CLI；示例脚本、配置和固定案例清单位于源码�
 | MAT5/XLSX 原生读取 | `.[native]` | SciPy、openpyxl |
 | 标量训练与模型推理 | `.[training]` | PyTorch、SciPy；公开训练器使用 CPU |
 | PyG 图导出 | `.[ml]` | PyTorch、torch-geometric；仍需正确的图声明 |
+| 本地 stdio MCP | `.[mcp]` | MCP SDK；固定案例依赖另装，中文浏览器界面本身不需要 MCP |
 | 开发与打包 | `.[dev]` | pytest、build、twine 等 |
 
 例如安装原生读取依赖：
@@ -97,7 +99,7 @@ Windows/Linux 训练示例建议先安装 CPU PyTorch，再安装训练与原生
 .\.venv\Scripts\python.exe -m pip install -e ".[training,native]"
 ```
 
-PyTorch 的平台选择见 [官方安装页面](https://pytorch.org/get-started/locally/)。Linux/Windows 已有发布 CI；macOS 的完整流程尚未验证。
+PyTorch 的平台选择见 [官方安装页面](https://pytorch.org/get-started/locally/)。仓库 CI 配置覆盖 Linux/Windows；各版本执行结果以相应提交的 CI 记录为准。macOS 的完整流程尚未验证。
 
 ## 第一次运行：不下载数据，不启动求解器
 
@@ -135,6 +137,23 @@ PyTorch 的平台选择见 [官方安装页面](https://pytorch.org/get-started/
 
 输入为作者公开的工程应力—应变曲线，数据采用 CC BY 4.0；[来源与处理口径](examples/paramaterial_tensile/SOURCES.md)随例保留。这一小任务检验处理与流转一致性，不代表材料标定或跨材料预测。
 
+### v0.4.0：通过本地任务界面或 agent 工具运行
+
+harness 为同一案例增加持久任务、独立 attempt、累计预算、暂停/取消/重试、受控产物、人工审核和分层验收。Python API、JSON CLI、可选 stdio MCP 与中文浏览器界面共用 `HarnessClient`。已有案例脚本和计算 API 仍可独立使用。
+
+在 Windows 完成上面的项目与案例依赖安装后，用同一个 Python 环境初始化一个新工作区并启动界面：
+
+```powershell
+.\.venv\Scripts\python.exe -m experiment_to_cpfe.cli harness init --workspace runs/harness-demo --case-dir examples/paramaterial_tensile
+.\.venv\Scripts\python.exe -m experiment_to_cpfe_harness_ui --workspace runs/harness-demo
+```
+
+安装时同时生成 `pipeline-harness-ui` 命令。界面只监听本机，启动时打印带令牌的地址；可查看预检、计划、状态、事件、曲线、指标与登记产物。工作区初始化和人工批准由操作者在终端完成。保留服务窗口直到任务结束，关闭或刷新浏览器页面不影响任务。
+
+任务执行当前仅支持 Windows 和固定 `paramaterial_tensile.v1`，不提供训练、Abaqus、GPU、远程执行或真实模型服务，也不支持检查点续算。原有训练/求解器入口的能力不等于已接入 harness。处理与验收参数保持固定，科学结论仍为未建立。
+
+使用方法见 [harness 中文指南](docs/harness.zh-CN.md)、[本地任务界面指南](docs/harness-ui.zh-CN.md)；Codex、Claude Code 与 Claude Desktop 的 stdio 配置见 [MCP 指南](docs/harness-mcp.zh-CN.md)。MCP 需另装 `.[mcp]`；协议验证不等于真实模型会话已验收。
+
 ## 接着运行：合成数据上的标量训练
 
 安装上面的 CPU 训练依赖后，运行表布局示例：
@@ -151,7 +170,7 @@ PyTorch 的平台选择见 [官方安装页面](https://pytorch.org/get-started/
 
 ### 数据划分和版本边界
 
-| 操作 | v0.3.1 支持范围 |
+| 操作 | v0.4.0 支持范围 |
 |---|---|
 | `build-training-dataset` | v1 单个 `target`；v2 有序 `targets` 列表；必须有 train、validation，test 可选 |
 | `train-surrogate` 默认模式 | v1 标量目标；要求 train、validation、test |
@@ -241,6 +260,8 @@ HDF5 是规范样本格式。普通样本 NPZ 保留样本数据；训练 NPZ �
 
 ## 当前验证范围与局限
 
+v0.4.0 增加固定案例 harness、MCP 和中文界面。基础回归、Windows harness/案例、MCP 协议、安装包检查与真实浏览器操作是不同验证范围；测试命令见下文，当前版本结果以 [v0.4.0 发布记录](https://github.com/koocmitwho/experiment-to-cpfe-pipeline/releases/tag/v0.4.0)和对应提交的 CI 为准。旧验收报告不代表 v0.4.0 已重新通过，也不证明真实 Codex/Claude 模型会话或科学泛化成立。
+
 v0.3.1 新增 Paramaterial 小案例；其依赖、测试与运行结果按[案例说明](examples/paramaterial_tensile/README.md)单列。以下 v0.3.0 数字保留为历史发布证据。
 
 v0.3.0 发布审核验证了公开包的独立安装、源码示例、CPU 训练/推理/评价和包内容。Windows 隔离环境最终复核为 **831 通过、1 跳过**，唯一跳过项为未启用的真实 Abaqus。标签 [CI](https://github.com/koocmitwho/experiment-to-cpfe-pipeline/actions/runs/36811952722) 的 Ubuntu/Windows 基础流程、CPU training、CPU ML 四项均通过；基础流程还检查了 wheel 安装，CPU ML 包含实际 PyG 序列化读回。
@@ -258,6 +279,7 @@ v0.3.0 发布审核验证了公开包的独立安装、源码示例、CPU 训练
 
 ```text
 src/experiment_to_cpfe/  Python 库、CLI、适配器、建集、训练与求解器接口
+src/experiment_to_cpfe_harness_ui/  本地中文浏览器界面与静态资源
 configs/                 示例配置、策略及 INP 模板
 examples/                合成示例与公开案例脚本/固定来源清单
 docs/                    格式、训练、运行和案例指南
@@ -272,6 +294,7 @@ scripts/                 ODB 提取与运行产物校验工具
 - 训练与分组：[训练数据](docs/training-datasets.md)、[合成训练示例](examples/synthetic_training/README.md)。
 - 从真实数据到独立预测：[DOPAMICS 中文教程](docs/real-case-workflow.md)。
 - 求解器与导出：[运行指南](docs/runbook.md)、[能力边界](docs/limitations.md)。
+- 本地任务与 agent 工具：[harness](docs/harness.zh-CN.md)、[中文界面](docs/harness-ui.zh-CN.md)、[MCP](docs/harness-mcp.zh-CN.md)。
 
 部分详细技术文档使用英文；中文 README 与真实案例教程提供主要入门路径。
 
@@ -294,6 +317,15 @@ $env:EXP2CPFE_TEST_PROFILE = "ml"
 ```
 
 Linux 用 `export EXP2CPFE_TEST_PROFILE=ml` 设置该模式。wheel 安装检查需先构建包，再按 [发布检查表](docs/release_checklist.md) 设置 `EXP2CPFE_WHEEL_DIR`。不同依赖和 opt-in 设置的测试数不能直接等同。
+
+Windows 上的 harness、MCP 和界面适配测试单列运行，不包含在默认 `tests/` 中：
+
+```powershell
+.\.venv\Scripts\python.exe -m pip install -e ".[dev,mcp]" -r examples/paramaterial_tensile/requirements.txt
+.\.venv\Scripts\python.exe -m pytest -q examples/harness/tests
+```
+
+该套件包含实际固定案例计算、故障恢复、HTTP/MCP 协议和静态资源检查；这些检查不能替代真实浏览器交互或模型客户端会话验收。
 
 欢迎通过 [Issues](https://github.com/koocmitwho/experiment-to-cpfe-pipeline/issues) 描述问题或提交 Pull Request。报告错误时附版本、相关命令、最小可复现配置和脱敏后的诊断；贡献格式适配或功能时说明适用范围并补充相应验证。请使用可公开的小型合成样本或有明确再分发许可的输入，不上传私人实验、凭据、模型权重或本机配置。
 

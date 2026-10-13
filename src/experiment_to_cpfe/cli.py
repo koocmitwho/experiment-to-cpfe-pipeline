@@ -55,6 +55,10 @@ def _parser() -> argparse.ArgumentParser:
 
 
 def main(argv: list[str] | None = None) -> int:
+    values = sys.argv[1:] if argv is None else argv
+    if values and values[0] == 'harness':
+        from experiment_to_cpfe.harness.cli import main as harness_main
+        return harness_main(values[1:])
     try:
         args = _parser().parse_args(argv)
     except SystemExit as exc:

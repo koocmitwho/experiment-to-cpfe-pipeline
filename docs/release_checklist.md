@@ -10,6 +10,7 @@ and [the validation/CI repair record](verification/2026-09-27-validation-ci-hard
 For `v0.2.1`, see [the release validation record](verification/2026-09-27-v0.2.1-release.md).
 For `v0.2.2`, see [the solver fingerprint and release record](verification/2026-09-27-v0.2.2-release.md).
 For `v0.3.1`, see [the Paramaterial case record](verification/2026-10-07-paramaterial-release.md).
+For `v0.4.0`, see [the harness and UI record](verification/2026-10-13-harness-release.md).
 
 ## Tests and packaging
 
