@@ -66,6 +66,17 @@ until work finishes; detached background execution is not promised.
 - A browser task created before that metadata change remains separate from a
   task created afterward, as required by the frozen environment identity. A
   further identical request reused the latter task without computation.
+- Initial Windows CI installed the wheel but inherited pytest's `pythonpath=src`
+  setting for the parent process. Its workers used the installed wheel, so the
+  package locations differed and environment checks rejected execution. The
+  harness step now clears that source-path injection with `-o pythonpath=` and
+  tests the installed package in both processes. No identity check or test was
+  removed. Source development tests continue using the editable environment.
+- One installed-wheel suite run encountered Windows `PermissionError` / WinError
+  5 while atomically replacing `normalization.json.tmp`. The failed attempt and
+  both receipt files were retained; no accepted result was published. The cause
+  of the transient access denial remains unknown, as in an earlier local check.
+  This is an unresolved host/filesystem limitation, not a claimed code fix.
 
 The raw logs, workspaces, absolute-path receipts and screenshots remain in local
 evidence storage. They are not included in source or package publication.
