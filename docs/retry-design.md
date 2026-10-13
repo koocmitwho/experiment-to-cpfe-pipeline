@@ -4,6 +4,12 @@
 to use one recorded attempt per stage. The proposed interface is
 `pipeline <stage> --retry --config <original-config> --run-dir <existing-run>`.
 
+The local harness development adds a separate immutable-attempt controller for
+the fixed offline Paramaterial workflow; see [the harness guide](harness.zh-CN.md).
+It does not implement this proposed legacy-stage `--retry` flag, migrate old run
+manifests, or enable Abaqus checkpoint recovery. Existing solver-stage semantics
+below remain a future design.
+
 ## Directory and identity
 
 Keep the existing run and its original `run_manifest.json`, input lock,

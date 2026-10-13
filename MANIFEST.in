@@ -6,6 +6,9 @@ recursive-include docs *.md *.json *.png
 recursive-exclude docs/verification *.md
 include docs/verification/2026-09-30-public-usability.md
 include docs/verification/2026-10-07-paramaterial-release.md
+include docs/verification/2026-10-13-harness-release.md
+exclude docs/harness-acceptance.zh-CN.md
+exclude docs/harness-mcp-acceptance.zh-CN.md
 include docs/verification/assets/README
 prune docs/superpowers
 prune docs/research

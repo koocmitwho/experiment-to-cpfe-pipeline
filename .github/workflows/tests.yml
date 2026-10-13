@@ -64,6 +64,13 @@ jobs:
         run: python -c "import glob, subprocess, sys; subprocess.check_call([sys.executable, '-m', 'pip', 'install', glob.glob('dist/*.whl')[0]])"
       - name: Verify the example and its installed-package workflow
         run: python -m pytest -q examples/paramaterial_tensile/tests
+      - name: Install optional MCP dependency for Windows harness verification
+        if: runner.os == 'Windows'
+        run: python -m pip install "mcp>=2.3,<3"
+      - name: Verify installed Windows harness and MCP stdio contracts, real case and fault recovery
+        if: runner.os == 'Windows'
+        # The isolated workers import the wheel; do not inject checkout src/ into the parent.
+        run: python -m pytest -q examples/harness/tests -o pythonpath=
 
   cpu-ml:
     runs-on: ubuntu-latest

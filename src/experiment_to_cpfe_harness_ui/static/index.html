@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Experiment-to-CPFE 本地任务台</title>
+<link rel="icon" href="/static/icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/static/style.css">
+<script src="/static/app.js" defer></script>
+</head>
+<body>
+<header class="topbar">
+  <div class="brand"><a href="#/">Experiment-to-CPFE 本地任务台</a></div>
+  <div class="workspace" id="workspace-path"></div>
+  <div class="conn" id="connection" data-state="connecting">正在连接本地服务…</div>
+  <button type="button" class="link" id="open-capabilities">能力与限制</button>
+</header>
+<div id="banners"></div>
+<main id="app" aria-live="polite"><p class="muted">正在加载…</p></main>
+<dialog id="capabilities-dialog">
+  <div class="dialog-head"><h2>能力与限制</h2><button type="button" class="link" id="close-capabilities">关闭</button></div>
+  <div id="capabilities-body"></div>
+</dialog>
+<dialog id="confirm-dialog">
+  <form method="dialog" id="confirm-form">
+    <h2 id="confirm-title"></h2>
+    <div id="confirm-body"></div>
+    <div class="actions">
+      <button type="submit" value="ok" id="confirm-ok"></button>
+      <button type="submit" value="cancel" class="secondary" formnovalidate>返回</button>
+    </div>
+  </form>
+</dialog>
+<noscript>本界面需要启用 JavaScript。</noscript>
+</body>
+</html>

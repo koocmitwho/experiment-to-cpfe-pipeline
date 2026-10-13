@@ -2,7 +2,7 @@
 
 [简体中文](README.md) | English
 
-Current public version: **v0.3.1**. [Downloads and packages](https://github.com/koocmitwho/experiment-to-cpfe-pipeline/releases/tag/v0.3.1) · [Changelog](CHANGELOG.md)
+Current public version: **v0.4.0**. [Downloads and packages](https://github.com/koocmitwho/experiment-to-cpfe-pipeline/releases/tag/v0.4.0) · [Changelog](CHANGELOG.md)
 
 **Turn experimental and microstructure data into traceable samples, then build datasets, train, predict independently and evaluate as needed.**
 
@@ -24,6 +24,7 @@ Its main uses are:
 - **Run scalar regression.** Use CPU OLS (ordinary least-squares linear regression) or an MLP (multilayer perceptron), fit preprocessing and models on training records only, and use validation records for model selection.
 - **Separate prediction from evaluation.** Generate predictions from a frozen checkpoint and input data, then evaluate against separate truth data, delivering readable CSV files, Chinese summaries and machine-readable records.
 - **Connect supported solver stages.** Check and prepare Abaqus INP files, record datacheck, analysis and ODB extraction stages, and export HDF5/NPZ or PyG with explicit graph declarations.
+- **Manage fixed-case tasks.** Run the registered Paramaterial case on Windows through Python, JSON CLI, optional MCP or a local Chinese browser UI, retaining task history, attempts, budgets and layered acceptance reports.
 
 The project does not automatically interpret arbitrary instrument formats, infer missing physical facts or construct a crystal-plasticity constitutive model from arbitrary experiments. Images and vendor-native files may first need conversion to supported numerical formats using other tools. Abaqus execution requires the user's own installation, model and any necessary compiler toolchain.
 
@@ -38,7 +39,7 @@ The public source and packages work independently of private code, private mater
 Run these commands in a directory of your choice. If the destination already exists, inspect its version and local changes first.
 
 ```text
-git clone --branch v0.3.1 --depth 1 https://github.com/koocmitwho/experiment-to-cpfe-pipeline.git
+git clone --branch v0.4.0 --depth 1 https://github.com/koocmitwho/experiment-to-cpfe-pipeline.git
 cd experiment-to-cpfe-pipeline
 python -m venv .venv
 ```
@@ -57,21 +58,21 @@ Linux/macOS shell:
 .venv/bin/python -m experiment_to_cpfe.cli --version
 ```
 
-The version command should print `pipeline 0.3.1`. These commands use the environment's interpreter directly; no PowerShell execution-policy change is required. Run subsequent commands from the repository root. They use Windows syntax; on Linux/macOS, replace `.\.venv\Scripts\python.exe` with `.venv/bin/python`.
+The version command should print `pipeline 0.4.0`. These commands use the environment's interpreter directly; no PowerShell execution-policy change is required. Run subsequent commands from the repository root. They use Windows syntax; for existing cross-platform workflows on Linux/macOS, replace `.\.venv\Scripts\python.exe` with `.venv/bin/python`. Task execution in the new harness currently supports Windows only.
 
-Without Git, download the [Release source distribution](https://github.com/koocmitwho/experiment-to-cpfe-pipeline/releases/download/v0.3.1/experiment_to_cpfe-0.3.1.tar.gz), extract it, and install from the directory containing `pyproject.toml`.
+Without Git, download the [Release source distribution](https://github.com/koocmitwho/experiment-to-cpfe-pipeline/releases/download/v0.4.0/experiment_to_cpfe-0.4.0.tar.gz), extract it, and install from the directory containing `pyproject.toml`.
 
-### Library and CLI only: install the wheel
+### Install the library, CLI and local UI from a wheel
 
 Install in a new or existing isolated virtual environment. For example, on Windows:
 
 ```powershell
 python -m venv .venv
-.\.venv\Scripts\python.exe -m pip install "https://github.com/koocmitwho/experiment-to-cpfe-pipeline/releases/download/v0.3.1/experiment_to_cpfe-0.3.1-py3-none-any.whl"
+.\.venv\Scripts\python.exe -m pip install "https://github.com/koocmitwho/experiment-to-cpfe-pipeline/releases/download/v0.4.0/experiment_to_cpfe-0.4.0-py3-none-any.whl"
 .\.venv\Scripts\python.exe -m experiment_to_cpfe.cli --help
 ```
 
-The wheel provides the library and CLI. Example scripts, configurations and fixed case manifests are in the source repository and source distribution. To run the examples below after installing the wheel, also obtain `examples/` from the matching v0.3.1 source. This version is distributed through GitHub and has no PyPI publication.
+The wheel provides the library, CLI, harness entry points and Chinese UI assets. Example scripts, configurations and fixed case manifests are in the source repository and source distribution. To run examples or initialize a harness workspace after installing the wheel, also obtain `examples/` from the matching v0.4.0 source and install the case dependencies. MCP requires its optional dependency. This version is distributed through GitHub and has no PyPI publication.
 
 ### Add dependencies for the work you need
 
@@ -82,6 +83,7 @@ The following commands apply to the source directory. The base workflow does not
 | Native MAT5/XLSX reading | `.[native]` | SciPy and openpyxl |
 | Scalar training and model inference | `.[training]` | PyTorch and SciPy; the public trainer uses CPU |
 | PyG graph export | `.[ml]` | PyTorch and torch-geometric; correct graph declarations are still required |
+| Local stdio MCP | `.[mcp]` | MCP SDK; install case dependencies separately. The Chinese browser UI itself does not require MCP |
 | Development and packaging | `.[dev]` | pytest, build, twine and related tools |
 
 For example, install native-reading dependencies with:
@@ -97,7 +99,7 @@ For Windows/Linux training examples, install CPU PyTorch first, then the trainin
 .\.venv\Scripts\python.exe -m pip install -e ".[training,native]"
 ```
 
-See the [official PyTorch installation page](https://pytorch.org/get-started/locally/) for platform selection. Release CI covers Linux and Windows; the complete macOS workflow has not been verified.
+See the [official PyTorch installation page](https://pytorch.org/get-started/locally/) for platform selection. Repository CI is configured for Linux and Windows; check the matching commit's CI record for each version's outcome. The complete macOS workflow has not been verified.
 
 ## First run: no data download or solver execution
 
@@ -135,6 +137,23 @@ The [Paramaterial example](examples/paramaterial_tensile/README.en.md) uses thre
 
 Inputs are author-provided engineering stress-strain curves under CC BY 4.0. [Sources and processing scope](examples/paramaterial_tensile/SOURCES.md) accompany the example. This checks processing and transfer consistency, not material calibration or cross-material prediction.
 
+### v0.4.0: use the local task UI or agent tools
+
+The harness adds durable tasks, separate attempts, cumulative budgets, pause/cancel/retry controls, registered artifacts, human review and layered acceptance to this same case. The Python API, JSON CLI, optional stdio MCP adapter and Chinese browser UI share `HarnessClient`. Existing case scripts and computation APIs remain independently available.
+
+On Windows, after installing the project and case dependencies above, initialize a new workspace and start the UI using the same Python environment:
+
+```powershell
+.\.venv\Scripts\python.exe -m experiment_to_cpfe.cli harness init --workspace runs/harness-demo --case-dir examples/paramaterial_tensile
+.\.venv\Scripts\python.exe -m experiment_to_cpfe_harness_ui --workspace runs/harness-demo
+```
+
+Installation also creates `pipeline-harness-ui`. The server binds to loopback and prints a URL containing a session token. The UI shows preflight checks, plans, status, events, curves, metrics and registered artifacts. Workspace initialization and human approval remain operator commands in a terminal. Keep the server window open until the task finishes; refreshing or closing the browser page does not affect the task.
+
+Task execution currently supports Windows and the fixed `paramaterial_tensile.v1` workflow only. The harness does not provide training, Abaqus, GPU, remote execution, model services or checkpoint continuation. Existing training and solver APIs are separate capabilities. Processing and acceptance parameters remain fixed; scientific validity is not established by case acceptance.
+
+See the [harness guide](docs/harness.zh-CN.md), [local UI guide](docs/harness-ui.zh-CN.md) and [Codex / Claude MCP configuration guide](docs/harness-mcp.zh-CN.md), currently in Chinese. Install `.[mcp]` for MCP access. Protocol verification does not establish successful use from an actual model session.
+
 ## Next run: scalar training on synthetic data
 
 After installing the CPU training dependencies above, run the table-layout example:
@@ -151,7 +170,7 @@ Open `runs/table-model-001/training.json` for the actual settings, normalization
 
 ### Splits and version boundaries
 
-| Operation | v0.3.1 support |
+| Operation | v0.4.0 support |
 |---|---|
 | `build-training-dataset` | v1 single `target`; v2 ordered `targets` list; train and validation required, test optional |
 | Default `train-surrogate` mode | v1 scalar target; train, validation and test required |
@@ -241,7 +260,9 @@ Current Abaqus checks cover supported three-dimensional solid elements, one mate
 
 ## Current verification scope and limitations
 
-v0.3.1 adds the Paramaterial case, with dependencies, tests and results documented in its [case guide](examples/paramaterial_tensile/README.en.md). The v0.3.0 numbers below remain historical release evidence.
+v0.4.0 adds the fixed-case harness, MCP adapter and Chinese UI. Base regression, Windows harness/case execution, MCP protocol tests, package checks and actual browser interactions are separate verification scopes. Commands are provided below; consult the [v0.4.0 release record](https://github.com/koocmitwho/experiment-to-cpfe-pipeline/releases/tag/v0.4.0) and matching commit's CI for current results. Earlier acceptance records do not establish a v0.4.0 rerun, an actual Codex/Claude model-session acceptance, or scientific generalization.
+
+v0.3.1 added the Paramaterial case, with dependencies, tests and results documented in its [case guide](examples/paramaterial_tensile/README.en.md). The v0.3.0 numbers below remain historical release evidence.
 
 The v0.3.0 release audit checked independent public-package installation, source examples, CPU training/inference/evaluation and package contents. Final isolated Windows verification had **831 passed and 1 skipped**, with the only skip being real Abaqus, which was not enabled. The tag [CI](https://github.com/koocmitwho/experiment-to-cpfe-pipeline/actions/runs/36811952722) passed all four jobs: Ubuntu/Windows base workflows, CPU training and CPU ML. Base jobs also checked wheel installation; CPU ML included actual PyG serialization/readback.
 
@@ -258,6 +279,7 @@ See [capabilities and operating conditions](docs/limitations.md) for detailed co
 
 ```text
 src/experiment_to_cpfe/  Python library, CLI, adapters, datasets, learning and solver interfaces
+src/experiment_to_cpfe_harness_ui/  Local Chinese browser UI and static assets
 configs/                 Example configurations, policies and INP templates
 examples/                Synthetic examples, public-case scripts and fixed source manifests
 docs/                    Format, training, operating and case guides
@@ -272,6 +294,7 @@ Choose the documentation for your task:
 - Training and grouping: [training datasets](docs/training-datasets.md), [synthetic training example](examples/synthetic_training/README.md).
 - Real data through independent prediction: [DOPAMICS English guide](docs/real-case-workflow.en.md).
 - Solvers and exports: [runbook](docs/runbook.md), [capability boundaries](docs/limitations.md).
+- Local tasks and agent tools: [harness](docs/harness.zh-CN.md), [Chinese UI](docs/harness-ui.zh-CN.md), [MCP](docs/harness-mcp.zh-CN.md).
 
 Some detailed technical documents are in English; the Chinese README and Chinese real-case guide provide the main Chinese introduction. The linked DOPAMICS guide also has an English edition.
 
@@ -294,6 +317,15 @@ $env:EXP2CPFE_TEST_PROFILE = "ml"
 ```
 
 On Linux, set the profile with `export EXP2CPFE_TEST_PROFILE=ml`. For the wheel-install check, build the package first, then set `EXP2CPFE_WHEEL_DIR` according to the [release checklist](docs/release_checklist.md). Test counts from different dependencies or opt-in settings are not directly comparable.
+
+Run the Windows harness, MCP and UI adapter suite separately; the default `tests/` collection does not include it:
+
+```powershell
+.\.venv\Scripts\python.exe -m pip install -e ".[dev,mcp]" -r examples/paramaterial_tensile/requirements.txt
+.\.venv\Scripts\python.exe -m pytest -q examples/harness/tests
+```
+
+This suite includes actual fixed-case computation, recovery, HTTP/MCP protocol and static-asset checks. These checks do not replace browser interaction or model-client session acceptance.
 
 Report problems through [Issues](https://github.com/koocmitwho/experiment-to-cpfe-pipeline/issues), or contribute a Pull Request. Include the version, relevant command, a minimal reproducible configuration and redacted diagnostics. For format adapters or features, explain their scope and add appropriate verification. Use small public synthetic samples or inputs with clear redistribution rights; do not upload private experiments, credentials, model weights or machine configuration.
 

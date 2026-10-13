@@ -1,5 +1,32 @@
 # Changelog
 
+## 0.4.0 — 2026-10-13
+
+- Add a durable local harness for the fixed `paramaterial_tensile.v1` case:
+  SQLite task history, frozen input/code/environment/protocol/budget identity,
+  idempotent requests, run listing and separate attempts for retries.
+- Share 17 versioned tools across Python, JSON CLI, optional stdio MCP and the
+  local browser adapter. Keep workspace initialization and human approval as
+  operator-only commands; approved evidence is rechecked before continuing.
+- Add Windows worker process-tree control, stage-boundary pause/resume,
+  cancellation, conservative recovery and cumulative resource budgets. Preserve
+  prior attempts and require explicit reconciliation when execution is uncertain.
+- Add artifact-ID reads with integrity checks and bounded CSV, JSON, text and
+  HDF5 views. Report engineering, data, numerical and scientific conclusions
+  separately without changing the case algorithm, reference data or tolerances.
+- Add `pipeline-harness-mcp` with the optional `mcp` extra and configuration
+  examples for Codex, Claude Code and Claude Desktop.
+- Add `pipeline-harness-ui`, its packaged static assets and a local Chinese UI
+  for planning, task controls, events, curves, metrics, artifacts and submission
+  of operator-approved evidence. Use loopback binding and per-start tokens.
+- Document installation and use in both READMEs, provide portable configuration
+  examples, and add harness, MCP, HTTP and packaging test coverage. Historical
+  validation counts remain attributed to their original versions.
+- Scope: harness execution supports Windows and the registered Paramaterial
+  case only. Training, Abaqus, GPU, remote execution, model services and
+  checkpoint continuation are not registered harness capabilities. Protocol
+  tests do not establish model-session usability or scientific generalization.
+
 ## 0.3.1 — 2026-10-07
 
 - Add a portable Paramaterial 0.1.0 example for three AA6061-T651 tensile
